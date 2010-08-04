@@ -8,10 +8,11 @@
 //bootstrap the library, it of course uses autoload because it's not 1998 anymore
 require_once 'Phinq/bootstrap.php';
 
+//fully qualifying things sucks
 use Phinq\Phinq;
 
 //suppose you have some sort of collection
-$payments = array(10.5, 11.94, 9.3, 0, 17.1);
+$payments = array(10.5, 11.94, 9.3, 0, 17.1, 10.5, 0);
 
 //let's do something to it
 $paymentQuery = Phinq::create($payments)
@@ -21,6 +22,9 @@ $paymentQuery = Phinq::create($payments)
 //nothing happens until we evaluate the expressions by calling toArray()
 $nonZeroOrderedPayments = $paymentQuery->toArray();
 print_r($nonZeroOrderedPayments);
+
+//non-zero, ordered and distinct
+print_r($paymentQuery->distinct()->toArray());
 /*
 Array
 (
