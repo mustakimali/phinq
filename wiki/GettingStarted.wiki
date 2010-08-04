@@ -1,0 +1,119 @@
+#summary Getting started using Phinq
+
+= Getting Started=
+
+== Basic usage ==
+
+{{{
+//bootstrap the library, it of course uses autoload because it's not 1998 anymore
+require_once 'Phinq/bootstrap.php';
+
+use Phinq\Phinq;
+
+//suppose you have some sort of collection
+$payments = array(10.5, 11.94, 9.3, 0, 17.1);
+
+//let's do something to it
+$paymentQuery = Phinq::create($payments)
+  ->where(function($payment) { return $payment !== 0; }) //non-zero
+  ->orderBy(function($payment) { return $payment; }); //sorted ascending
+
+//nothing happens until we evaluate the expressions by calling toArray()
+$nonZeroOrderedPayments = $paymentQuery->toArray();
+print_r($nonZeroOrderedPayments);
+/*
+Array
+(
+    [0] => 9.3
+    [1] => 10.5
+    [2] => 10.5
+    [3] => 11.94
+    [4] => 17.1
+)
+*/
+
+//non-zero, ordered and distinct
+print_r($paymentQuery->distinct()->toArray());
+/*
+Array
+(
+    [0] => 9.3
+    [1] => 10.5
+    [2] => 11.94
+    [3] => 17.1
+)
+*/
+}}}
+
+== Grouping using objects ==
+{{{
+//say we had a Person struct, and each person has a place of residence
+class Person {
+  public $id;
+  public $name;
+  public $residence;
+  
+  public function __construct($id, $name, State $state) {
+    $this->id = $id;
+    $this->name = $name;
+    $this->residence = $state;
+  }
+}
+
+class State {
+  public $id;
+  public $name;
+  public $region;
+  public $code;
+  
+  public function __construct($id, $name, $region, $code) {
+    $this->id = $id;
+    $this->name = $name;
+    $this->region = $region;
+    $this->code = $code;
+  }
+}
+  
+//...and we have these people who live in these states
+$people = array(
+  new Person(1, 'Tommy', new State(1, 'California', 'SW', 'CA')),
+  new Person(2, 'Bobby', new State(2, 'Washington', 'NW', 'WA')),
+  new Person(3, 'Joey', new State(2, 'Washington', 'NW', 'WA')),
+  new Person(4, 'Jerry', new State(3, 'New York', 'NE', 'NY')),
+  new Person(3, 'Dubya', new State(4, 'Texas', 'S', 'TX'))
+);
+  
+//...and we want to group them by region
+echo Phinq::create($people)
+  ->groupBy(function($person) { return $person->residence->region; })
+  ->select(function($grouping) { 
+    //$grouping is an instance of Phinq\Grouping, which inherits from Phinq
+    //it has a getKey() method which returns the key used to perform the grouping
+    $obj = new stdClass();
+    $obj->people = $grouping;
+    $obj->region = $grouping->getKey();
+    return $obj;
+  })->orderBy(function($obj) { return $obj->people->count(); }, true /* descending */)
+  ->aggregate(function($current, $next) { 
+    $count = $next->people->count();
+    return $current . sprintf(
+      "%d %s (%s) live in the %s region\n",
+      $count,
+      $count === 1 ? 'person' : 'people',
+      $next->people->aggregate(function($current, $next) {
+        if ($current !== null) {
+          $current .= ', ';
+        }
+        return $current . sprintf('%s [%s]', $next->name, $next->residence->code);
+      }),
+      $next->region
+    );
+  });
+
+/*
+2 people (Bobby [WA], Joey [WA]) live in the NW region
+1 person (Dubya [TX]) live in the S region
+1 person (Tommy [CA]) live in the SW region
+1 person (Jerry [NY]) live in the NE region
+*/
+}}}
