@@ -121,3 +121,25 @@ echo Phinq::create($people)
 1 person (Jerry [NY]) live in the NE region
 */
 }}}
+
+The C# equivalent would look approximately like this:
+{{{
+people
+  .GroupBy(person => person.Residence.Region)
+  .Select(grouping => new { Region = grouping.Key, People = grouping })
+  .OrderBy(obj => obj.People.Count())
+  .Aggregate((current, next) => {
+    var count = next.People.Count();
+    return current + string.Format(
+      "{0} {1} ({2}) live in the {3} region",
+      count,
+      count == 1 ? "person" : "people",
+      next.People.Aggregate((personString, nextPerson) {
+        if (!string.IsNullOrEmpty(personString)) {
+          personString += ", ";
+        }
+
+        return personString + string.Format("{0} [{1}]", nextPerson.Name, nextPerson.Residence.Code);
+      })
+    );
+  });
