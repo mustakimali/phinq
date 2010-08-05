@@ -22,10 +22,6 @@ $paymentQuery = Phinq::create($payments)
 //nothing happens until we evaluate the expressions by calling toArray()
 $nonZeroOrderedPayments = $paymentQuery->toArray();
 print_r($nonZeroOrderedPayments);
-
-//non-zero, ordered and distinct
-print_r($paymentQuery->distinct()->toArray());
-/*
 Array
 (
     [0] => 9.3
