@@ -140,6 +140,7 @@ people
         }
 
         return personString + string.Format("{0} [{1}]", nextPerson.Name, nextPerson.Residence.Code);
-      })
+      }),
+      next.Region
     );
   });
