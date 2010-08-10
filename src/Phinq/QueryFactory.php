@@ -14,7 +14,7 @@
 		/**
 		 * @param string $expressionType One of the ExpressionType constants
 		 * @param array $expressions
-		 * @return mixed
+		 * @return Expression
 		 */
 		function getExpression($expressionType, array $expressions);
 	}
