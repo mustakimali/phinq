@@ -693,7 +693,7 @@
 		 * @return Phinq
 		 */
 		public function cast($type) {
-			$this->addToQueue(new CastQuery($type));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Cast, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -707,7 +707,7 @@
 		 * @return Phinq
 		 */
 		public function ofType($type) {
-			$this->addToQueue(new OfTypeQuery($type));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::OfType, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -719,7 +719,7 @@
 		 * @return Phinq
 		 */
 		public function defaultIfEmpty($defaultValue = null) {
-			$this->addToQueue(new DefaultIfEmptyQuery($defaultValue));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::DefaultIfEmpty, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -748,6 +748,14 @@
 			return $this->getThisOrCastDown();
 		}
 
+		/**
+		 * Gets an Iterator implementation suitable for foreach-ing over
+		 * the collection
+		 *
+		 * Calling this method will evaluate the queries.
+		 *
+		 * @return ArrayIterator
+		 */
 		public function getIterator() {
 			return new ArrayIterator($this->toArray());
 		}

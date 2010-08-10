@@ -12,7 +12,7 @@
 		const Concat = 'Concat';
 		// const Contains = 'Contains';
 		// const Count = 'Count';
-		// const DefaultIfEmpty = 'DefaultIfEmpty';
+		const DefaultIfEmpty = 'DefaultIfEmpty';
 		const Distinct = 'Distinct';
 		// const ElementAt = 'ElementAt';
 		// const ElementAtOrDefault = 'ElementAtOrDefault';
