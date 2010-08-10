@@ -10,18 +10,6 @@
 		private function __construct() {}
 		//@codeCoverageIgnoreEnd
 
-		/**
-		 * What the hell does this do?
-		 */
-		public static function nonRecursiveFlatten(array $array) {
-			$flattened = array();
-			foreach ($array as $value) {
-				$flattened[] = $value;
-			}
-
-			return $flattened;
-		}
-
 		public static function compare($a, $b) {
 			if (is_int($a) || is_float($a)) {
 				return (is_int($b) || is_float($b)) && $a == $b ? 0 : ($a < $b ? -1 : 1);

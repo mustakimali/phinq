@@ -9,7 +9,7 @@
 			$lambda = $this->getLambdaExpression();
 
 			array_walk($collection, function($value, $key) use (&$flattenedCollection, $lambda) {
-				$flattenedCollection = array_merge($flattenedCollection, Util::nonRecursiveFlatten($lambda($value)));
+				$flattenedCollection = array_merge($flattenedCollection, ($lambda($value)));
 			});
 
 			return $flattenedCollection;
