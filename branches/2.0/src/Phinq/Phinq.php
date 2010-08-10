@@ -14,13 +14,17 @@
 		private $queryQueue = array();
 		private $index = 0;
 		private $isDirty = false;
+		private static $defaultQueryFactory = null;
+		private $queryFactory;
 
 		/**
 		 * @param array|Phinq|Iterator|IteratorAggregate $collection The initial collection to query on
+		 * @param array $queries Initial queries to enqueue
 		 */
-		protected function __construct($collection, array $queries = array()) {
+		protected function __construct($collection, QueryFactory $queryFactory, array $queries = array()) {
 			$this->collection = Util::convertToNumericallyIndexedArray($collection);
 			$this->evaluatedCollection = $this->collection;
+			$this->queryFactory = $queryFactory;
 
 			if (!empty($queries)) {
 				foreach ($queries as $query) {
@@ -33,10 +37,24 @@
 		 * Convenience factory method for method chaining
 		 *
 		 * @param array|Phinq|Iterator|IteratorAggregate $collection The initial collection to query on
+		 * @param QueryFactory $queryFactory
 		 * @return Phinq
 		 */
-		public final static function create($collection) {
-			return new static($collection);
+		public final static function create($collection, QueryFactory $queryFactory = null) {
+			return new static($collection, $queryFactory ?: (self::$defaultQueryFactory ?: self::$defaultQueryFactory = new LambdaDrivenQueryFactory()));
+		}
+
+		/**
+		 * Sets the default QueryFactory instance
+		 *
+		 * The default QueryFactory instance is only used if null is passed to the second argument
+		 * of create(). If this method is never called, an instance of LambdaDrivenQueryFactory will
+		 * be used as the default.
+		 *
+		 * @param QueryFactory $queryFactory
+		 */
+		public static function setDefaultQueryFactory(QueryFactory $queryFactory) {
+			self::$defaultQueryFactory = $queryFactory;
 		}
 
 		/**
@@ -46,7 +64,7 @@
 		 */
 		private function getThisOrCastDown() {
 			if (get_class($this) !== __CLASS__) {
-				return new self($this->collection, $this->queryQueue);
+				return new self($this->collection, $this->queryFactory, $this->queryQueue);
 			}
 
 			return $this;
@@ -135,7 +153,7 @@
 		 */
 		public function orderBy(Closure $lambda, $descending = false) {
 			$this->addToQueue(new OrderByQuery($lambda, (bool)$descending));
-			return new OrderedPhinq($this->collection, $this->queryQueue);
+			return new OrderedPhinq($this->collection, $this->queryFactory, $this->queryQueue);
 		}
 
 		/**
@@ -407,7 +425,7 @@
 		 * @return Phinq
 		 */
 		public function groupBy(Closure $lambda) {
-			$this->addToQueue(new GroupByQuery($lambda));
+			$this->addToQueue(new GroupByQuery($lambda, $this->queryFactory));
 			return $this->getThisOrCastDown();
 		}
 

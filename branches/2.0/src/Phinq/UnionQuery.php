@@ -5,7 +5,6 @@
 	class UnionQuery extends ComparableQuery {
 
 		private $additionalCollection;
-		private $comparer;
 
 		public function __construct(array $additionalCollection, EqualityComparer $comparer = null) {
 			parent::__construct($comparer);

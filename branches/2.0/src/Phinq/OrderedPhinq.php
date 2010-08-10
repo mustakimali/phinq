@@ -6,12 +6,8 @@
 
 	class OrderedPhinq extends Phinq {
 
-		public function __construct($collection, array $queries) {
-			parent::__construct($collection);
-
-			foreach ($queries as $query) {
-				$this->addToQueue($query);
-			}
+		public function __construct($collection, QueryFactory $queryFactory, array $queries) {
+			parent::__construct($collection, $queryFactory, $queries);
 		}
 
 		/**
