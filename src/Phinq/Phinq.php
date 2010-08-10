@@ -70,7 +70,7 @@
 			return $this;
 		}
 
-		protected function getCollection(Closure $predicate = null) {
+		protected function getCollection($predicate = null) {
 			$collection = $this->toArray();
 
 			if ($predicate !== null) {
@@ -133,11 +133,11 @@
 		 * and returns a boolean indicating whether or not the member should be included in the
 		 * filtered collection.
 		 *
-		 * @param Closure $predicate
+		 * @param mixed $predicate
 		 * @return Phinq
 		 */
-		public function where(Closure $predicate) {
-			$this->addToQueue(new WhereQuery($predicate));
+		public function where($predicate) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Where, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -147,12 +147,12 @@
 		 * The lambda expression takes one argument, the value of the current collection member,
 		 * and returns a value which will used to sort the entire collection.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @param bool $descending If true, the collection will be reversed
 		 * @return OrderedPhinq
 		 */
-		public function orderBy(Closure $lambda, $descending = false) {
-			$this->addToQueue(new OrderByQuery($lambda, (bool)$descending));
+		public function orderBy($expression, $descending = false) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::OrderBy, array($expression, (bool)$descending)));
 			return new OrderedPhinq($this->collection, $this->queryFactory, $this->queryQueue);
 		}
 
@@ -162,11 +162,11 @@
 		 * The lambda expression takes one argument, the value of the current collection member,
 		 * and returns a new value which replaces the original value in the collection.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @return Phinq
 		 */
-		public function select(Closure $lambda) {
-			$this->addToQueue(new SelectQuery($lambda));
+		public function select($expression) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Select, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -230,11 +230,11 @@
 		/**
 		 * Bypasses all elements as long as the given predicate is satisfied
 		 *
-		 * @param Closure $predicate Takes one argument, the current element, and returns a boolean
+		 * @param mixed $predicate Takes one argument, the current element, and returns a boolean
 		 * @return Phinq
 		 */
-		public function skipWhile(Closure $predicate) {
-			$this->addToQueue(new SkipWhileQuery($predicate));
+		public function skipWhile($predicate) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::SkipWhile, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -252,11 +252,11 @@
 		/**
 		 * Returns elements as long as the given predicate is satisfied
 		 *
-		 * @param Closure $predicate Takes one argument, the current element, and returns a boolean
+		 * @param mixed $predicate Takes one argument, the current element, and returns a boolean
 		 * @return Phinq
 		 */
-		public function takeWhile(Closure $predicate) {
-			$this->addToQueue(new TakeWhileQuery($predicate));
+		public function takeWhile($predicate) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::TakeWhile, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -265,10 +265,10 @@
 		 * is empty
 		 *
 		 * @throws EmptyCollectionException
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object
 		 */
-		public function first(Closure $predicate = null) {
+		public function first($predicate = null) {
 			$first = $this->firstOrDefault($predicate);
 			if ($first === null) {
 				throw new EmptyCollectionException('Collection does not contain any elements');
@@ -280,10 +280,10 @@
 		/**
 		 * Gets the first element in the collection, or null if the collection is empty
 		 *
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object|null The first element in the collection, or null if the collection is empty
 		 */
-		public function firstOrDefault(Closure $predicate = null) {
+		public function firstOrDefault($predicate = null) {
 			$collection = $this->getCollection($predicate);
 
 			if (empty($collection)) {
@@ -298,10 +298,10 @@
 		 * exactly one element in the collection
 		 *
 		 * @throws BadMethodCallException
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object
 		 */
-		public function single(Closure $predicate = null) {
+		public function single($predicate = null) {
 			$single = $this->singleOrDefault($predicate);
 			if ($single === null) {
 				throw new BadMethodCallException('Collection does not contain exactly one element');
@@ -316,10 +316,10 @@
 		 * an exception if there is not exactly one or zero elements in the collection
 		 * 
 		 * @throws BadMethodCallException
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object
 		 */
-		public function singleOrDefault(Closure $predicate = null) {
+		public function singleOrDefault($predicate = null) {
 			$collection = $this->getCollection($predicate);
 
 			if (empty($collection)) {
@@ -336,10 +336,10 @@
 		 * Gets the last element in the collection, or throws an exception if the collection is empty
 		 *
 		 * @throws EmptyCollectionException
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object
 		 */
-		public function last(Closure $predicate = null) {
+		public function last($predicate = null) {
 			$last = $this->lastOrDefault($predicate);
 			if ($last === null) {
 				throw new EmptyCollectionException('Collection does not contain any elements');
@@ -351,10 +351,10 @@
 		/**
 		 * Gets the last element in the collection or null if the collection is empty
 		 *
-		 * @param Closure $predicate Optional filter (see {@link where()})
+		 * @param mixed $predicate Optional filter (see {@link where()})
 		 * @return object
 		 */
-		public function lastOrDefault(Closure $predicate = null) {
+		public function lastOrDefault($predicate = null) {
 			$collection = $this->getCollection($predicate);
 
 			if (empty($collection)) {
@@ -418,14 +418,14 @@
 		 * Groups the collection into a collection of {@link Grouping}s based on
 		 * the given lambda expression
 		 *
-		 * $lambda takes in one argument, the current element, and returns the key
+		 * $expression takes in one argument, the current element, and returns the key
 		 * that determines how the collection is grouped.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @return Phinq
 		 */
-		public function groupBy(Closure $lambda) {
-			$this->addToQueue(new GroupByQuery($lambda, $this->queryFactory));
+		public function groupBy($expression) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupBy, array($expression, $this->queryFactory)));
 			return $this->getThisOrCastDown();
 		}
 
@@ -439,6 +439,7 @@
 		 * @return bool
 		 */
 		public function all(Closure $predicate) {
+			//TODO use query factory? something needs to happen here because $predicate shouldn't be required to be a lambda function
 			return array_reduce($this->toArray(), function($current, $next) use ($predicate) { return $current && $predicate($next); }, true);
 		}
 
@@ -451,6 +452,7 @@
 		 * @return bool
 		 */
 		public function any(Closure $predicate = null) {
+			//TODO use query factory? something needs to happen here because $predicate shouldn't be required to be a lambda function
 			$collection = $this->toArray();
 			if ($predicate === null && !empty($collection)) {
 				return true;
@@ -489,10 +491,10 @@
 		 *
 		 * $predicate should take one argument, the current element, and return a boolean.
 		 *
-		 * @param Closure $predicate
+		 * @param mixed $predicate
 		 * @return int
 		 */
-		public function count(Closure $predicate = null) {
+		public function count($predicate = null) {
 			$collection = $this->getCollection($predicate);
 			return count($collection);
 		}
@@ -515,6 +517,7 @@
 		 * @return mixed
 		 */
 		public function max(Closure $lambda = null) {
+			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
 			$lambda = $lambda ?: function($value) { return $value; };
 			return self::create($this->toArray())->orderBy($lambda, true)->firstOrDefault();
 		}
@@ -527,6 +530,7 @@
 		 * @return mixed
 		 */
 		public function min(Closure $lambda = null) {
+			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
 			$lambda = $lambda ?: function($value) { return $value; };
 			return self::create($this->toArray())->orderBy($lambda)->firstOrDefault();
 		}
@@ -543,6 +547,7 @@
 		 * @return float Returns zero if the collection is empty
 		 */
 		public function average(Closure $lambda = null) {
+			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
 			$collection = $lambda !== null ? Phinq::create($this->toArray())->select($lambda)->toArray() : $this->toArray();
 			if (empty($collection)) {
 				return 0;
@@ -563,6 +568,7 @@
 		 * @return float
 		 */
 		public function sum(Closure $lambda = null) {
+			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
 			$collection = $lambda !== null ? Phinq::create($this->toArray())->select($lambda)->toArray() : $this->toArray();
 			return array_sum($collection);
 		}
@@ -583,6 +589,7 @@
 		 * @return mixed
 		 */
 		public function aggregate(Closure $accumulator, $seed = null) {
+			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
 			$collection = $this->toArray();
 			return array_reduce($collection, $accumulator, $seed);
 		}
@@ -605,11 +612,11 @@
 		 *
 		 * $lambda takes in one argument, the current element, and returns an array.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @return Phinq
 		 */
-		public function selectMany(Closure $lambda) {
-			$this->addToQueue(new SelectManyQuery($lambda));
+		public function selectMany($expression) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::SelectMany, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -643,14 +650,14 @@
 		 * Correlates elements of the two collections based on matching keys
 		 *
 		 * @param array $collectionToJoinOn
-		 * @param Closure $innerKeySelector Takes one argument, the element's value, and returns the join key for that object
-		 * @param Closure $outerKeySelector Takes one argument, the element's value, and returns the join key for that object
-		 * @param Closure $resultSelector Takes two arguments, the matching elements from each collection, and returns a single value
+		 * @param mixed $innerKeySelector Takes one argument, the element's value, and returns the join key for that object
+		 * @param mixed $outerKeySelector Takes one argument, the element's value, and returns the join key for that object
+		 * @param mixed $resultSelector Takes two arguments, the matching elements from each collection, and returns a single value
 		 * @param EqualityComparer $comparer
 		 * @return Phinq
 		 */
-		public function join(array $collectionToJoinOn, Closure $innerKeySelector, Closure $outerKeySelector, Closure $resultSelector, EqualityComparer $comparer = null) {
-			$this->addToQueue(new JoinQuery($collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, $comparer));
+		public function join(array $collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, EqualityComparer $comparer = null) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Join, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -660,14 +667,14 @@
 		 * This is basically an outer join.
 		 *
 		 * @param array $collectionToJoinOn
-		 * @param Closure $innerKeySelector Takes one argument, the element's value, and returns the join key for that object
-		 * @param Closure $outerKeySelector Takes one argument, the element's value, and returns the join key for that object
-		 * @param Closure $resultSelector Takes two arguments, the matching elements from each collection, and returns a single value
+		 * @param mixed $innerKeySelector Takes one argument, the element's value, and returns the join key for that object
+		 * @param mixed $outerKeySelector Takes one argument, the element's value, and returns the join key for that object
+		 * @param mixed $resultSelector Takes two arguments, the matching elements from each collection, and returns a single value
 		 * @param EqualityComparer $comparer
 		 * @return Phinq
 		 */
 		public function groupJoin(array $collectionToJoinOn, Closure $innerKeySelector, Closure $outerKeySelector, Closure $resultSelector, EqualityComparer $comparer = null) {
-			$this->addToQueue(new GroupJoinQuery($collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, $comparer));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupJoin, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -720,11 +727,11 @@
 		 * Merges the given collection into the collection using the given result selector
 		 *
 		 * @param array $collectionToMerge
-		 * @param Closure $resultSelector Takes in two arguments, and returns a single value
+		 * @param mixed $resultSelector Takes in two arguments, and returns a single value
 		 * @return Phinq
 		 */
-		public function zip(array $collectionToMerge, Closure $resultSelector) {
-			$this->addToQueue(new ZipQuery($collectionToMerge, $resultSelector));
+		public function zip(array $collectionToMerge, $resultSelector) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Zip, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -733,11 +740,11 @@
 		 *
 		 * This does NOT modify the collection in any way.
 		 *
-		 * @param Closure $lambda Takes one argument, the current element, with no return value
+		 * @param mixed $expression Takes one argument, the current element, with no return value
 		 * @return Phinq
 		 */
-		public function walk(Closure $lambda) {
-			$this->addToQueue(new WalkQuery($lambda));
+		public function walk($expression) {
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Walk, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 

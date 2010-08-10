@@ -28,6 +28,7 @@
 		// const Max = 'Max';
 		// const Min = 'Min';
 		const OfType = 'OfType';
+		const OrderBy = 'OrderBy';
 		const Reverse = 'Reverse';
 		const Select = 'Select';
 		const SelectMany = 'SelectMany';

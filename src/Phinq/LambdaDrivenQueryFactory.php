@@ -1,6 +1,8 @@
 <?php
 
 	namespace Phinq;
+
+	use ReflectionException, InvalidArgumentException, ReflectionClass;
 	
 	class LambdaDrivenQueryFactory implements QueryFactory {
 
