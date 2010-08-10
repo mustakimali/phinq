@@ -4,7 +4,7 @@
 
 	use ReflectionException, InvalidArgumentException, ReflectionClass;
 	
-	class LambdaDrivenQueryFactory implements QueryFactory {
+	class ReflectedQueryFactory implements QueryFactory {
 
 		private static $reflectionCache = array();
 

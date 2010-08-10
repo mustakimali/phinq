@@ -41,14 +41,14 @@
 		 * @return Phinq
 		 */
 		public final static function create($collection, QueryFactory $queryFactory = null) {
-			return new static($collection, $queryFactory ?: (self::$defaultQueryFactory ?: self::$defaultQueryFactory = new LambdaDrivenQueryFactory()));
+			return new static($collection, $queryFactory ?: (self::$defaultQueryFactory ?: self::$defaultQueryFactory = new ReflectedQueryFactory()));
 		}
 
 		/**
 		 * Sets the default QueryFactory instance
 		 *
 		 * The default QueryFactory instance is only used if null is passed to the second argument
-		 * of create(). If this method is never called, an instance of LambdaDrivenQueryFactory will
+		 * of create(). If this method is never called, an instance of ReflectedQueryFactory will
 		 * be used as the default.
 		 *
 		 * @param QueryFactory $queryFactory
@@ -71,13 +71,7 @@
 		}
 
 		protected function toArrayAndApplyPredicate($predicate = null) {
-			$collection = $this->toArray();
-
-			if ($predicate !== null) {
-				$collection = self::create($collection)->where($predicate)->toArray();
-			}
-
-			return $collection;
+			return $predicate !== null ? self::create($this)->where($predicate)->toArray() : $this->toArray();
 		}
 
 		protected final function addToQueue(Query $query) {
@@ -111,19 +105,15 @@
 		 * Returns the collection as an ArrayAccess-able object, with the
 		 * keys being chosen using the given $keySelector
 		 *
-		 * @param Closure $keySelector A lambda function that takes one argument, the current element, and
-		 *                             returns a key for the dictionary entry for the corresponding element
+		 * @param mixed $keySelector A lambda function that takes one argument, the current element, and
+		 *                           returns a key for the dictionary entry for the corresponding element
 		 * @return Dictionary
 		 */
-		public function toDictionary(Closure $keySelector) {
-			$collection = $this->toArray();
-
-			$dictionary = new Dictionary();
-			for ($i = 0, $count = count($collection); $i < $count; $i++) {
-				$dictionary[$keySelector($collection[$i])] = $collection[$i];
-			}
-
-			return $dictionary;
+		public function toDictionary($keySelector) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::ToDictionary, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
@@ -435,12 +425,14 @@
 		 * $predicate takes in one argument, the current element, and returns a boolean.
 		 * Note that if the collection is empty, this method evaluates to true.
 		 *
-		 * @param Closure $predicate
+		 * @param mixed $predicate
 		 * @return bool
 		 */
-		public function all(Closure $predicate) {
-			//TODO use query factory? something needs to happen here because $predicate shouldn't be required to be a lambda function
-			return array_reduce($this->toArray(), function($current, $next) use ($predicate) { return $current && $predicate($next); }, true);
+		public function all($predicate) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::All, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
@@ -448,23 +440,14 @@
 		 *
 		 * $predicate takes in one argument, the current element, and returns a boolean.
 		 *
-		 * @param Closure $predicate
+		 * @param mixed $predicate
 		 * @return bool
 		 */
-		public function any(Closure $predicate = null) {
-			//TODO use query factory? something needs to happen here because $predicate shouldn't be required to be a lambda function
-			$collection = $this->toArray();
-			if ($predicate === null && !empty($collection)) {
-				return true;
-			}
-
-			foreach ($collection as $value) {
-				if ($predicate($value)) {
-					return true;
-				}
-			}
-
-			return false;
+		public function any($predicate = null) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::Any, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
@@ -580,14 +563,15 @@
 		 *
 		 * @see array_reduce()
 		 *
-		 * @param Closure $accumulator Takes two values, the current value and the next value, and returns the input to the next iteration
+		 * @param mixed $accumulator Takes two values, the current value and the next value, and returns the input to the next iteration
 		 * @param mixed $seed Optional seed for the accumulator, or the default value if the collection is empty
 		 * @return mixed
 		 */
-		public function aggregate(Closure $accumulator, $seed = null) {
-			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
-			$collection = $this->toArray();
-			return array_reduce($collection, $accumulator, $seed);
+		public function aggregate($accumulator, $seed = null) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::Aggregate, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
