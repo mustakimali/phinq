@@ -512,27 +512,25 @@
 		/**
 		 * Gets the maximum-valued element from the collection
 		 *
-		 * This method is equivalent to calling orderBy($lambda, true) followed by firstOrDefault().
-		 *
 		 * @return mixed
 		 */
-		public function max(Closure $lambda = null) {
-			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
-			$lambda = $lambda ?: function($value) { return $value; };
-			return self::create($this->toArray())->orderBy($lambda, true)->firstOrDefault();
+		public function max($expression = null) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::Max, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
 		 * Gets the minimum-valued element from the collection
 		 *
-		 * This method is equivalent to calling orderBy($lambda) followed by firstOrDefault().
-		 *
 		 * @return mixed
 		 */
-		public function min(Closure $lambda = null) {
-			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
-			$lambda = $lambda ?: function($value) { return $value; };
-			return self::create($this->toArray())->orderBy($lambda)->firstOrDefault();
+		public function min($expression = null) {
+			return $this
+				->queryFactory
+				->getExpression(ExpressionType::Min, func_get_args())
+				->evaluate($this->toArray());
 		}
 
 		/**
@@ -543,12 +541,11 @@
 		 * function that maps each element to a numeric value. Otherwise, the result
 		 * may be unexpected.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $lambda
 		 * @return float Returns zero if the collection is empty
 		 */
-		public function average(Closure $lambda = null) {
-			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
-			$collection = $lambda !== null ? Phinq::create($this->toArray())->select($lambda)->toArray() : $this->toArray();
+		public function average($lambda = null) {
+			$collection = $lambda !== null ? Phinq::create($this)->select($lambda)->toArray() : $this->toArray();
 			if (empty($collection)) {
 				return 0;
 			}
@@ -564,12 +561,11 @@
 		 * function that maps each element to a numeric value. Otherwise, the result
 		 * may be unexpected.
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @return float
 		 */
-		public function sum(Closure $lambda = null) {
-			//TODO use query factory? something needs to happen here because $lambda shouldn't be required to be a lambda function
-			$collection = $lambda !== null ? Phinq::create($this->toArray())->select($lambda)->toArray() : $this->toArray();
+		public function sum($expression = null) {
+			$collection = $expression !== null ? Phinq::create($this)->select($expression)->toArray() : $this->toArray();
 			return array_sum($collection);
 		}
 

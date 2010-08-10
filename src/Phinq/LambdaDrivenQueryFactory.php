@@ -9,27 +9,19 @@
 		private static $reflectionCache = array();
 
 		public function getQuery($queryType, array $expressions) {
-			$className = 'Phinq\\' . $queryType . 'Query';
-			
-			try {
-				$class = self::getClass($className);
-			} catch (ReflectionException $e) {
-				throw new InvalidArgumentException('Unknown query type: ' . $queryType, $e->getCode(), $e);
-			}
-
-			return $class->newInstanceArgs($expressions);
+			return self::getInstance('Phinq\\' . $queryType . 'Query', $expressions);
 		}
 
-		/**
-		 * @param string $className
-		 * @return ReflectionClass
-		 */
-		private static function getClass($className) {
+		public function getExpression($expressionType, array $expressions) {
+			return self::getInstance('Phinq\\' . $expressionType . 'Expression', $expressions);
+		}
+
+		private static function getInstance($className, array $args) {
 			if (!isset(self::$reflectionCache[$className])) {
 				self::$reflectionCache[$className] = new ReflectionClass($className);
 			}
 
-			return self::$reflectionCache[$className];
+			return self::$reflectionCache[$className]->newInstanceArgs($args);
 		}
 
 	}
