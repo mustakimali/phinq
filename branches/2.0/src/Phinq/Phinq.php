@@ -537,15 +537,15 @@
 		 * Computes the average value of all values in the collection
 		 *
 		 * Note that this always returns a float, so if the collection is not
-		 * contained entirely of numeric values, $lambda should be a transform
+		 * contained entirely of numeric values, $expression should be a transform
 		 * function that maps each element to a numeric value. Otherwise, the result
 		 * may be unexpected.
 		 *
-		 * @param mixed $lambda
+		 * @param mixed $expression
 		 * @return float Returns zero if the collection is empty
 		 */
-		public function average($lambda = null) {
-			$collection = $lambda !== null ? Phinq::create($this)->select($lambda)->toArray() : $this->toArray();
+		public function average($expression = null) {
+			$collection = $expression !== null ? Phinq::create($this)->select($expression)->toArray() : $this->toArray();
 			if (empty($collection)) {
 				return 0;
 			}
@@ -557,7 +557,7 @@
 		 * Compures the sum of all values in the collection
 		 *
 		 * Note that this always returns a float, so if the collection is not
-		 * contained entirely of numeric values, $lambda should be a transform
+		 * contained entirely of numeric values, $expression should be a transform
 		 * function that maps each element to a numeric value. Otherwise, the result
 		 * may be unexpected.
 		 *
