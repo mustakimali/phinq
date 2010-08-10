@@ -673,7 +673,7 @@
 		 * @param EqualityComparer $comparer
 		 * @return Phinq
 		 */
-		public function groupJoin(array $collectionToJoinOn, Closure $innerKeySelector, Closure $outerKeySelector, Closure $resultSelector, EqualityComparer $comparer = null) {
+		public function groupJoin(array $collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, EqualityComparer $comparer = null) {
 			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupJoin, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
