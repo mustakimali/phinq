@@ -70,7 +70,7 @@
 			return $this;
 		}
 
-		protected function getCollection($predicate = null) {
+		protected function toArrayAndApplyPredicate($predicate = null) {
 			$collection = $this->toArray();
 
 			if ($predicate !== null) {
@@ -178,7 +178,7 @@
 		 * @return Phinq
 		 */
 		public function union(array $collectionToUnion, EqualityComparer $comparer = null) {
-			$this->addToQueue(new UnionQuery($collectionToUnion, $comparer));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Union, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -190,7 +190,7 @@
 		 * @return Phinq
 		 */
 		public function intersect(array $collectionToIntersect, EqualityComparer $comparer = null) {
-			$this->addToQueue(new IntersectQuery($collectionToIntersect, $comparer));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Intersect, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -201,7 +201,7 @@
 		 * @return Phinq
 		 */
 		public function concat(array $collectionToConcat) {
-			$this->addToQueue(new ConcatQuery($collectionToConcat));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Concat, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -212,7 +212,7 @@
 		 * @return Phinq
 		 */
 		public function distinct(EqualityComparer $comparer = null) {
-			$this->addToQueue(new DistinctQuery($comparer));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Distinct, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -223,7 +223,7 @@
 		 * @return Phinq
 		 */
 		public function skip($amount) {
-			$this->addToQueue(new SkipQuery($amount));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Skip, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -245,7 +245,7 @@
 		 * @return Phinq
 		 */
 		public function take($amount) {
-			$this->addToQueue(new TakeQuery($amount));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Take, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -284,7 +284,7 @@
 		 * @return object|null The first element in the collection, or null if the collection is empty
 		 */
 		public function firstOrDefault($predicate = null) {
-			$collection = $this->getCollection($predicate);
+			$collection = $this->toArrayAndApplyPredicate($predicate);
 
 			if (empty($collection)) {
 				return null;
@@ -320,7 +320,7 @@
 		 * @return object
 		 */
 		public function singleOrDefault($predicate = null) {
-			$collection = $this->getCollection($predicate);
+			$collection = $this->toArrayAndApplyPredicate($predicate);
 
 			if (empty($collection)) {
 				return null;
@@ -355,7 +355,7 @@
 		 * @return object
 		 */
 		public function lastOrDefault($predicate = null) {
-			$collection = $this->getCollection($predicate);
+			$collection = $this->toArrayAndApplyPredicate($predicate);
 
 			if (empty($collection)) {
 				return null;
@@ -397,7 +397,7 @@
 				throw new InvalidArgumentException('1st argument must be an integer');
 			}
 
-			$collection = $this->getCollection();
+			$collection = $this->toArray();
 			if (empty($collection)) {
 				return null;
 			}
@@ -495,7 +495,7 @@
 		 * @return int
 		 */
 		public function count($predicate = null) {
-			$collection = $this->getCollection($predicate);
+			$collection = $this->toArrayAndApplyPredicate($predicate);
 			return count($collection);
 		}
 
@@ -505,7 +505,7 @@
 		 * @return Phinq
 		 */
 		public function reverse() {
-			$this->addToQueue(new ReverseQuery());
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Reverse, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
@@ -603,7 +603,7 @@
 		 * @return Phinq
 		 */
 		public function except(array $collectionToExcept, EqualityComparer $comparer = null) {
-			$this->addToQueue(new ExceptQuery($collectionToExcept, $comparer));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Except, func_get_args()));
 			return $this->getThisOrCastDown();
 		}
 
