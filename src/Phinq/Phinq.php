@@ -48,12 +48,12 @@
 		 * Sets the default QueryFactory instance
 		 *
 		 * The default QueryFactory instance is only used if null is passed to the second argument
-		 * of create(). If this method is never called, an instance of ReflectedQueryFactory will
-		 * be used as the default.
+		 * of create(). If this method is never called or null is passed, an instance of
+		 *  ReflectedQueryFactory will be used as the default.
 		 *
 		 * @param QueryFactory $queryFactory
 		 */
-		public static function setDefaultQueryFactory(QueryFactory $queryFactory) {
+		public static function setDefaultQueryFactory(QueryFactory $queryFactory = null) {
 			self::$defaultQueryFactory = $queryFactory;
 		}
 
