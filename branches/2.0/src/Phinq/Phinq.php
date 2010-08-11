@@ -33,6 +33,10 @@
 			}
 		}
 
+		protected final function getQueryFactory() {
+			return $this->queryFactory;
+		}
+
 		/**
 		 * Convenience factory method for method chaining
 		 *
@@ -49,7 +53,7 @@
 		 *
 		 * The default QueryFactory instance is only used if null is passed to the second argument
 		 * of create(). If this method is never called or null is passed, an instance of
-		 *  ReflectedQueryFactory will be used as the default.
+		 * ReflectedQueryFactory will be used as the default.
 		 *
 		 * @param QueryFactory $queryFactory
 		 */

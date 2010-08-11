@@ -13,12 +13,12 @@
 		/**
 		 * Performs a subsequent sort
 		 *
-		 * @param Closure $lambda
+		 * @param mixed $expression
 		 * @param bool $descending Whether to sort in descending order
 		 * @return OrderedPhinq
 		 */
-		public function thenBy(Closure $lambda, $descending = false) {
-			$this->addToQueue(new ThenByQuery($this->getLastQuery(), $lambda, $descending));
+		public function thenBy($expression, $descending = false) {
+			$this->addToQueue($this->getQueryFactory()->getQuery(QueryType::ThenBy, array($this->getLastQuery(), $expression, $descending)));
 			return $this;
 		}
 
