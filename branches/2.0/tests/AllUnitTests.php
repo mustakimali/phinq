@@ -11,10 +11,6 @@
 
 	$baseDir  = dirname(dirname(__FILE__));
 	$testsDir = $baseDir . DIRECTORY_SEPARATOR . 'tests';
-	$srcDir   = $baseDir . DIRECTORY_SEPARATOR . 'src';
-	
-	\PHPUnit_Util_Filter::addDirectoryToWhiteList($srcDir);
-	\PHPUnit_Util_Filter::addFileToFilter(__FILE__, 'PHPUNIT');
 
 	//get all the test files
 	$GLOBALS['test_classes'] = array();
@@ -33,7 +29,7 @@
 		}
 	}
 	
-	unset($testsDir, $srcDir, $baseDir, $file, $testClass);
+	unset($testsDir, $baseDir, $file, $testClass);
 
 	/**
 	 * Test suite that runs all unit tests
