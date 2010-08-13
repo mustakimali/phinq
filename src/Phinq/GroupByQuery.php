@@ -6,13 +6,6 @@
 
 	class GroupByQuery extends LambdaDrivenQuery {
 
-		private $queryFactory;
-
-		public function __construct(Closure $lambda, QueryFactory $queryFactory) {
-			parent::__construct($lambda);
-			$this->queryFactory = $queryFactory;
-		}
-
 		public function execute(array $collection) {
 			$lambda = $this->getLambdaExpression();
 			$dictionary = new GroupingDictionary();
@@ -24,7 +17,7 @@
 
 			$groupings = array();
 			foreach ($dictionary as $grouping) {
-				$groupings[] = new Grouping($grouping['value'], $grouping['key'], $this->queryFactory);
+				$groupings[] = new Grouping($grouping['value'], $grouping['key']);
 			}
 
 			return $groupings;

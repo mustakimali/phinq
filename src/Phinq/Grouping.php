@@ -6,8 +6,8 @@
 
 		private $key;
 
-		public function __construct(array $collection, $key, QueryFactory $queryFactory) {
-			parent::__construct($collection, $queryFactory);
+		public function __construct(array $collection, $key) {
+			parent::__construct($collection);
 			$this->key = $key;
 		}
 
