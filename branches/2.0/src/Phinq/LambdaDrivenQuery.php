@@ -8,8 +8,8 @@
 
 		private $lambda;
 
-		public function __construct(Closure $lambda) {
-			$this->lambda = $lambda;
+		public function __construct(Expression $expression) {
+			$this->lambda = $expression->toLambda();
 		}
 
 		public final function getLambdaExpression() {

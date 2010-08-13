@@ -8,20 +8,13 @@
 
 		private static $reflectionCache = array();
 
-		public function getQuery($queryType, array $expressions) {
-			return self::getInstance('Phinq\\' . $queryType . 'Query', $expressions);
-		}
-
-		public function getExpression($expressionType, array $expressions) {
-			return self::getInstance('Phinq\\' . $expressionType . 'Expression', $expressions);
-		}
-
-		private static function getInstance($className, array $args) {
+		public function getQuery($queryType, array $expressions = array()) {
+			$className = 'Phinq\\' . $queryType . 'Query';
 			if (!isset(self::$reflectionCache[$className])) {
 				self::$reflectionCache[$className] = new ReflectionClass($className);
 			}
 
-			return self::$reflectionCache[$className]->newInstanceArgs($args);
+			return self::$reflectionCache[$className]->newInstanceArgs($expressions);
 		}
 
 	}

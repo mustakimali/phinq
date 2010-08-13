@@ -2,14 +2,12 @@
 
 	namespace Phinq;
 
-	use Closure;
-
 	class ThenByQuery extends OrderedQuery {
 
 		private $previousQuery;
 
-		public function __construct(OrderedQuery $previousQuery, Closure $lambda, $descending = false) {
-			parent::__construct($lambda, $descending);
+		public function __construct(OrderedQuery $previousQuery, Expression $expression, $descending = false) {
+			parent::__construct($expression, $descending);
 			$this->previousQuery = $previousQuery;
 		}
 

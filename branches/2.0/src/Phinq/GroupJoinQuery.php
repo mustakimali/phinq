@@ -4,28 +4,14 @@
 
 	use Closure;
 
-	class GroupJoinQuery extends ComparableQuery {
-
-		private $collectionToJoinOn;
-		private $innerKeySelector;
-		private $outerKeySelector;
-		private $resultSelector;
-		private $comparer;
-
-		public function __construct(array $collectionToJoinOn, Closure $innerKeySelector, Closure $outerKeySelector, Closure $resultSelector, EqualityComparer $comparer = null) {
-			parent::__construct($comparer);
-			$this->collectionToJoinOn = $collectionToJoinOn;
-			$this->innerKeySelector = $innerKeySelector;
-			$this->outerKeySelector = $outerKeySelector;
-			$this->resultSelector = $resultSelector;
-		}
+	class GroupJoinQuery extends JoinableQuery {
 
 		public function execute(array $collection) {
-			$innerKeySelector = $this->innerKeySelector;
-			$outerKeySelector = $this->outerKeySelector;
+			$innerKeySelector = $this->getInnerKeySelector();
+			$outerKeySelector = $this->getOuterKeySelector();
 			$comparer         = $this->getComparer();
-			$outerCount       = count($this->collectionToJoinOn);
-			$outerCollection  = $this->collectionToJoinOn;
+			$outerCollection  = $this->getCollection();
+			$outerCount       = count($outerCollection);
 			$dictionary       = new GroupingDictionary();
 
 			array_walk(
@@ -41,7 +27,7 @@
 			);
 
 			//there's probably a more efficient way to do this... but does anybody ever actually use GroupJoin()? I mean, come on!
-			$resultSelector = $this->resultSelector;
+			$resultSelector = $this->getResultSelector();
 			$newCollection = array();
 			foreach ($collection as $value) {
 				if (isset($dictionary[$value])) {
