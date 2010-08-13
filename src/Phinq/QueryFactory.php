@@ -9,14 +9,7 @@
 		 * @param array $expressions
 		 * @return Query
 		 */
-		function getQuery($queryType, array $expressions);
-
-		/**
-		 * @param string $expressionType One of the ExpressionType constants
-		 * @param array $expressions
-		 * @return Expression
-		 */
-		function getExpression($expressionType, array $expressions);
+		function getQuery($queryType, array $expressions = array());
 	}
 
 ?>

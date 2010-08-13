@@ -20,10 +20,10 @@
 
 		public function testWhereWithSelectAndAggregate() {
 			$tommysFemaleFriends = Phinq::create(self::getPeople())
-				->where(function($person) { return Phinq::create($person->friends)->contains(1); })
-				->where(function($person) { return $person->sex === 'F'; })
-				->select(function($person) { return $person->firstName . ' ' . $person->lastName; })
-				->aggregate(function($current, $next) { return $current . $next . "\n"; });
+				->where('$person => Phinq\Phinq::create($person->friends)->contains(1)')
+				->where('$person => $person->sex === "F"')
+				->select('$person => $person->firstName . " " . $person->lastName')
+				->aggregate('($current, $next) => $current . $next . "\n"');
 
 			$expected = <<<PEOPLE
 Veronica Lodge
@@ -36,7 +36,7 @@ PEOPLE;
 
 		public function testSelectMany() {
 			$uniqueFriends = Phinq::create(self::getPeople())
-				->selectMany(function($person) { return $person->friends; })
+				->selectMany('$person => $person->friends')
 				->distinct();
 
 			self::assertSame(array(2, 3, 4, 5, 6, 7, 1), $uniqueFriends->toArray());

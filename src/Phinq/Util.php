@@ -36,7 +36,11 @@
 			throw new InvalidArgumentException('Unable to convert value to an array');
 		}
 
-		public static function getDefaultSortCallback(Closure $lambda, $descending) {
+		public static function getDefaultSortCallback($lambda, $descending) {
+			if (!is_callable($lambda)) {
+				throw new InvalidArgumentException('1st argument must be callable');
+			}
+
 			$direction = $descending ? -1 : 1;
 
 			return function($a, $b) use ($lambda, $direction) {

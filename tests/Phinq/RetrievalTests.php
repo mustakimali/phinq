@@ -16,7 +16,7 @@
 		}
 
 		public function testFirstWithFilter() {
-			self::assertSame(4, Phinq::create(array(1, 2, 3, 4, 5, 6))->first(function($value) { return $value > 3; }));
+			self::assertSame(4, Phinq::create(array(1, 2, 3, 4, 5, 6))->first('$value => $value > 3'));
 		}
 
 		public function testFirstOrDefault() {
@@ -24,7 +24,7 @@
 		}
 
 		public function testFirstOrDefaultWithFilter() {
-			self::assertSame(4, Phinq::create(array(1, 2, 3, 4, 5, 6))->firstOrDefault(function($value) { return $value > 3; }));
+			self::assertSame(4, Phinq::create(array(1, 2, 3, 4, 5, 6))->firstOrDefault('$value => $value > 3'));
 		}
 
 		public function testFirstOrDefaultWithNoElements() {
@@ -36,7 +36,7 @@
 		}
 
 		public function testSingleWithFilter() {
-			self::assertSame(6, Phinq::create(array(1, 2, 3, 4, 5, 6))->single(function($value) { return $value > 5; }));
+			self::assertSame(6, Phinq::create(array(1, 2, 3, 4, 5, 6))->single('$value => $value > 5'));
 		}
 
 		public function testSingleWithNoElements() {
@@ -54,7 +54,7 @@
 		}
 
 		public function testSingleOrDefaultWithFilter() {
-			self::assertSame(6, Phinq::create(array(1, 2, 3, 4, 5, 6))->singleOrDefault(function($value) { return $value > 5; }));
+			self::assertSame(6, Phinq::create(array(1, 2, 3, 4, 5, 6))->singleOrDefault('$value => $value > 5'));
 		}
 
 		public function testSingleOrDefaultWithNoElements() {
@@ -76,7 +76,7 @@
 		}
 
 		public function testLastWithFilter() {
-			self::assertSame(2, Phinq::create(array(1, 2, 3, 4, 5, 6))->last(function($value) { return $value < 3; }));
+			self::assertSame(2, Phinq::create(array(1, 2, 3, 4, 5, 6))->last('$value => $value < 3'));
 		}
 
 		public function testLastOrDefault() {
@@ -84,7 +84,7 @@
 		}
 
 		public function testLastOrDefaultWithFilter() {
-			self::assertSame(2, Phinq::create(array(1, 2, 3, 4, 5, 6))->lastOrDefault(function($value) { return $value < 3; }));
+			self::assertSame(2, Phinq::create(array(1, 2, 3, 4, 5, 6))->lastOrDefault('$value => $value < 3'));
 		}
 
 		public function testLastOrDefaultWithNoElements() {

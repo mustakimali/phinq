@@ -31,6 +31,26 @@
 			}
 		}
 
+		/**
+		 * @throws ParserException
+		 * @param string $expression
+		 * @return Expression
+		 */
+		protected function parseExpression($expression) {
+			$varRegex = '\$([a-zA-Z_]\w*)';
+			$regex = sprintf('/^(?:%s|\(%s(?:,\s*%s)+\))\s*=>\s*(.+)$/', $varRegex, $varRegex, $varRegex);
+			if (!preg_match($regex, $expression, $matches)) {
+				throw new ParserException('Syntax error in expression ' . $expression);
+			}
+
+			$matches = array_filter($matches, function($value) { return !empty($value); });
+
+			array_shift($matches);
+			$body = array_pop($matches);
+
+			return new Expression($matches, $body);
+		}
+
 		protected final function getQueryFactory() {
 			return $this->queryFactory;
 		}
@@ -111,10 +131,15 @@
 		 * @return Dictionary
 		 */
 		public function toDictionary($keySelector) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::ToDictionary, func_get_args())
-				->evaluate($this->toArray());
+			$lambda = $this->parseExpression($keySelector)->toLambda();
+			$collection = $this->toArray();
+			
+			$dictionary = new Dictionary();
+			for ($i = 0, $count = count($collection); $i < $count; $i++) {
+				$dictionary[$lambda($collection[$i])] = $collection[$i];
+			}
+
+			return $dictionary;
 		}
 
 		/**
@@ -128,7 +153,7 @@
 		 * @return Phinq
 		 */
 		public function where($predicate) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Where, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Where, array($this->parseExpression($predicate))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -143,7 +168,7 @@
 		 * @return OrderedPhinq
 		 */
 		public function orderBy($expression, $descending = false) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::OrderBy, array($expression, (bool)$descending)));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::OrderBy, array($this->parseExpression($expression), (bool)$descending)));
 			return new OrderedPhinq($this->collection, $this->queryFactory, $this->queryQueue);
 		}
 
@@ -157,7 +182,7 @@
 		 * @return Phinq
 		 */
 		public function select($expression) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Select, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Select, array($this->parseExpression($expression))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -225,7 +250,7 @@
 		 * @return Phinq
 		 */
 		public function skipWhile($predicate) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::SkipWhile, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::SkipWhile,  array($this->parseExpression($predicate))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -247,7 +272,7 @@
 		 * @return Phinq
 		 */
 		public function takeWhile($predicate) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::TakeWhile, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::TakeWhile, array($this->parseExpression($predicate))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -416,7 +441,7 @@
 		 * @return Phinq
 		 */
 		public function groupBy($expression) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupBy, array($expression, $this->queryFactory)));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupBy, array($this->parseExpression($expression), $this->queryFactory)));
 			return $this->getThisOrCastDown();
 		}
 
@@ -430,10 +455,8 @@
 		 * @return bool
 		 */
 		public function all($predicate) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::All, func_get_args())
-				->evaluate($this->toArray());
+			$predicate = $this->parseExpression($predicate)->toLambda();
+			return array_reduce($this->toArray(), function($current, $next) use ($predicate) { return $current && $predicate($next); }, true);
 		}
 
 		/**
@@ -445,10 +468,23 @@
 		 * @return bool
 		 */
 		public function any($predicate = null) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::Any, func_get_args())
-				->evaluate($this->toArray());
+			if ($predicate !== null) {
+				$predicate = $this->parseExpression($predicate)->toLambda();
+			}
+
+			$collection = $this->toArray();
+
+			if ($predicate === null && !empty($collection)) {
+				return true;
+			}
+
+			foreach ($collection as $value) {
+				if ($predicate($value)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/**
@@ -460,8 +496,8 @@
 		 */
 		public function contains($value, EqualityComparer $comparer = null) {
 			$comparer = $comparer ?: DefaultEqualityComparer::getInstance();
-			foreach ($this->toArray() as $element) {
-				if ($comparer->equals($value, $element) === 0) {
+			foreach ($this->toArray() as $item) {
+				if ($comparer->equals($value, $item) === 0) {
 					return true;
 				}
 			}
@@ -489,7 +525,7 @@
 		 * @return Phinq
 		 */
 		public function reverse() {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Reverse, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Reverse));
 			return $this->getThisOrCastDown();
 		}
 
@@ -499,10 +535,15 @@
 		 * @return mixed
 		 */
 		public function max($expression = null) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::Max, func_get_args())
-				->evaluate($this->toArray());
+			if ($expression === null) {
+				$expression = function($value) { return $value; };
+			} else {
+				$expression = $this->parseExpression($expression)->toLambda();
+			}
+
+			$collection = $this->toArray();
+			usort($collection, Util::getDefaultSortCallback($expression, true));
+			return @$collection[0];
 		}
 
 		/**
@@ -511,10 +552,15 @@
 		 * @return mixed
 		 */
 		public function min($expression = null) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::Min, func_get_args())
-				->evaluate($this->toArray());
+			if ($expression === null) {
+				$expression = function($value) { return $value; };
+			} else {
+				$expression = $this->parseExpression($expression)->toLambda();
+			}
+
+			$collection = $this->toArray();
+			usort($collection, Util::getDefaultSortCallback($expression, false));
+			return @$collection[0];
 		}
 
 		/**
@@ -569,10 +615,8 @@
 		 * @return mixed
 		 */
 		public function aggregate($accumulator, $seed = null) {
-			return $this
-				->queryFactory
-				->getExpression(ExpressionType::Aggregate, func_get_args())
-				->evaluate($this->toArray());
+			$accumulator = $this->parseExpression($accumulator)->toLambda();
+			return array_reduce($this->toArray(), $accumulator, $seed);
 		}
 
 		/**
@@ -597,7 +641,7 @@
 		 * @return Phinq
 		 */
 		public function selectMany($expression) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::SelectMany, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::SelectMany, array($this->parseExpression($expression))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -638,7 +682,15 @@
 		 * @return Phinq
 		 */
 		public function join(array $collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, EqualityComparer $comparer = null) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Join, func_get_args()));
+			$args = array(
+				$collectionToJoinOn,
+				$this->parseExpression($innerKeySelector),
+				$this->parseExpression($outerKeySelector),
+				$this->parseExpression($resultSelector),
+				$comparer
+			);
+			
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Join, $args));
 			return $this->getThisOrCastDown();
 		}
 
@@ -655,7 +707,15 @@
 		 * @return Phinq
 		 */
 		public function groupJoin(array $collectionToJoinOn, $innerKeySelector, $outerKeySelector, $resultSelector, EqualityComparer $comparer = null) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupJoin, func_get_args()));
+			$args = array(
+				$collectionToJoinOn,
+				$this->parseExpression($innerKeySelector),
+				$this->parseExpression($outerKeySelector),
+				$this->parseExpression($resultSelector),
+				$comparer
+			);
+			
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::GroupJoin, $args));
 			return $this->getThisOrCastDown();
 		}
 
@@ -712,7 +772,7 @@
 		 * @return Phinq
 		 */
 		public function zip(array $collectionToMerge, $resultSelector) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Zip, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Zip, array($collectionToMerge, $this->parseExpression($resultSelector))));
 			return $this->getThisOrCastDown();
 		}
 
@@ -725,7 +785,7 @@
 		 * @return Phinq
 		 */
 		public function walk($expression) {
-			$this->addToQueue($this->queryFactory->getQuery(QueryType::Walk, func_get_args()));
+			$this->addToQueue($this->queryFactory->getQuery(QueryType::Walk, array($this->parseExpression($expression))));
 			return $this->getThisOrCastDown();
 		}
 

@@ -9,7 +9,7 @@
 		public function testGroupBy() {
 			$collection = array('foo', 'bar', 'baz', 'bat');
 			$groupings = Phinq::create($collection)
-				->groupBy(function($value) { return $value[0]; })
+				->groupBy('$value => $value[0]')
 				->toArray();
 
 			self::assertSame(2, count($groupings));
@@ -38,7 +38,7 @@
 			
 			$collection = array($foo, $bar, $baz);
 			$groupings = Phinq::create($collection)
-				->groupBy(function($value) { return $value->id; })
+				->groupBy('$value => $value->id')
 				->toArray();
 
 			self::assertSame(2, count($groupings));
@@ -59,7 +59,7 @@
 		public function testMax() {
 			$collection = array(2, 4, 3, 6, 5, 1);
 			self::assertEquals(6, Phinq::create($collection)->max());
-			self::assertEquals(3, Phinq::create($collection)->max(function($value) { return $value > 3 ? 0 : $value; }));
+			self::assertEquals(3, Phinq::create($collection)->max('$value => $value > 3 ? 0 : $value'));
 		}
 
 		public function testMaxWithEmptyCollection() {
@@ -74,7 +74,7 @@
 			$collection = array($obj1, $obj2, $obj3);
 
 			self::assertSame($obj1, Phinq::create($collection)->max());
-			self::assertSame($obj1, Phinq::create($collection)->max(function($value) { return $value->id; }));
+			self::assertSame($obj1, Phinq::create($collection)->max('$value => $value->id'));
 		}
 
 		public function testMaxWithDuplicateValues() {
@@ -84,13 +84,13 @@
 
 			$collection = array($obj1, $obj2, $obj3);
 
-			self::assertSame($obj3, Phinq::create($collection)->max(function($value) { return $value->id; }));
+			self::assertSame($obj3, Phinq::create($collection)->max('$value => $value->id'));
 		}
 
 		public function testMin() {
 			$collection = array(2, 4, 3, 6, 5, 1);
 			self::assertEquals(1, Phinq::create($collection)->min());
-			self::assertEquals(6, Phinq::create($collection)->min(function($value) { return $value > 3 ? 0 : $value; }));
+			self::assertEquals(6, Phinq::create($collection)->min('$value => $value > 3 ? 0 : $value'));
 		}
 
 		public function testMinWithEmptyCollection() {
@@ -104,7 +104,7 @@
 
 			$collection = array($obj1, $obj2, $obj3);
 			
-			self::assertSame($obj3, Phinq::create($collection)->min(function($value) { return $value->id; }));
+			self::assertSame($obj3, Phinq::create($collection)->min('$value => $value->id'));
 		}
 
 		public function testMinWithNonNumbers() {
@@ -115,13 +115,13 @@
 			$collection = array($obj1, $obj2, $obj3);
 
 			self::assertSame($obj2, Phinq::create($collection)->min());
-			self::assertSame($obj2, Phinq::create($collection)->min(function($value) { return $value->id; }));
+			self::assertSame($obj2, Phinq::create($collection)->min('$value => $value->id'));
 		}
 
 		public function testAverage() {
 			$collection = array(1, 2, 3, 4, 5, 6);
 			self::assertEquals(3.5, Phinq::create($collection)->average());
-			self::assertEquals(7, Phinq::create($collection)->average(function($value) { return $value * 2; }));
+			self::assertEquals(7, Phinq::create($collection)->average('$value => $value * 2'));
 		}
 
 		public function testAverageWithNonNumericValues() {
@@ -136,7 +136,7 @@
 		public function testSum() {
 			$collection = array(1, 2, 3, 4, 5, 6);
 			self::assertEquals(21, Phinq::create($collection)->sum());
-			self::assertEquals(42, Phinq::create($collection)->sum(function($value) { return $value * 2; }));
+			self::assertEquals(42, Phinq::create($collection)->sum('$value => $value * 2'));
 		}
 
 		public function testSumWithNonNumericValues() {

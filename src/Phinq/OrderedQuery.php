@@ -8,8 +8,8 @@
 
 		private $descending;
 
-		public function __construct(Closure $lambda, $descending = false) {
-			parent::__construct($lambda);
+		public function __construct(Expression $expression, $descending = false) {
+			parent::__construct($expression);
 			$this->descending = (bool)$descending;
 		}
 

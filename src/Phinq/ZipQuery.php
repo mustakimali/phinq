@@ -9,9 +9,9 @@
 		private $collectionToMerge;
 		private $resultSelector;
 
-		public function __construct(array $collectionToMerge, Closure $resultSelector) {
+		public function __construct(array $collectionToMerge, Expression $resultSelector) {
 			$this->collectionToMerge = $collectionToMerge;
-			$this->resultSelector = $resultSelector;
+			$this->resultSelector = $resultSelector->toLambda();
 		}
 
 		public function execute(array $collection) {

@@ -7,22 +7,6 @@
 	
 	class NonLinqTests extends \PHPUnit_Framework_TestCase {
 
-		public function tearDown() {
-			Phinq::setDefaultQueryFactory(); //resets the default query factory
-		}
-
-		public function testUseNonDefaultQueryFactory() {
-			$queryFactory = $this->getMock('Phinq\QueryFactory');
-			$expression = $this->getMock('Phinq\Expression');
-			$expression->expects($this->any())->method('evaluate');
-
-			$queryFactory->expects($this->once())->method('getExpression')->will($this->returnValue($expression));
-
-			Phinq::setDefaultQueryFactory($queryFactory);
-
-			Phinq::create(array())->any();
-		}
-
 		public function testCreateFromPhinq() {
 			$phinq = Phinq::create(array('foo', 'bar'));
 			$collection = Phinq::create($phinq)->toArray();

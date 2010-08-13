@@ -8,8 +8,8 @@
 
 		private $queryFactory;
 
-		public function __construct(Closure $lambda, QueryFactory $queryFactory) {
-			parent::__construct($lambda);
+		public function __construct(Expression $expression, QueryFactory $queryFactory) {
+			parent::__construct($expression);
 			$this->queryFactory = $queryFactory;
 		}
 

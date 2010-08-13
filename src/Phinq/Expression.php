@@ -2,12 +2,31 @@
 
 	namespace Phinq;
 	
-	interface Expression {
+	class Expression {
+
+		private $parameters;
+		private $body;
+
+		public function __construct(array $parameters, $body) {
+			$this->parameters = $parameters;
+			$this->body = $body;
+		}
+
+		public function getParameters() {
+			return $this->parameters;
+		}
+
+		public function getBody() {
+			return $this->body;
+		}
+
 		/**
-		 * @param array $collection
-		 * @return mixed
+		 * @return string
 		 */
-		function evaluate(array $collection);
+		public function toLambda() {
+			return create_function('$' . implode(', $', $this->parameters), 'return ' . $this->body . ';');
+		}
+
 	}
 
 ?>

@@ -18,7 +18,7 @@
 		 * @return OrderedPhinq
 		 */
 		public function thenBy($expression, $descending = false) {
-			$this->addToQueue($this->getQueryFactory()->getQuery(QueryType::ThenBy, array($this->getLastQuery(), $expression, $descending)));
+			$this->addToQueue($this->getQueryFactory()->getQuery(QueryType::ThenBy, array($this->getLastQuery(), $this->parseExpression($expression), $descending)));
 			return $this;
 		}
 
