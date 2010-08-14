@@ -201,7 +201,7 @@
 			$temp = array();
 
 			$phinq = Phinq::create(array('foo', 'bar'))
-				->walk(new Expression(array('value'), '$temp[] = $value', array('&$temp' => &$temp)));
+				->walk(new Expression(array('$value'), '$temp[] = $value', array('&$temp' => &$temp)));
 
 			self::assertSame(array('foo', 'bar'), $phinq->toArray());
 			self::assertSame(array('foo', 'bar'), $temp);

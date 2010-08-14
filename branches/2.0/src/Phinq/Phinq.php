@@ -41,7 +41,7 @@
 				return $expression;
 			}
 
-			$varRegex = '\$([a-zA-Z_]\w*)';
+			$varRegex = '(\$[a-zA-Z_]\w*)';
 			$regex = sprintf('/^(?|%s|\(%s(?:,\s*%s)+\))\s*=>\s*(.+)$/', $varRegex, $varRegex, $varRegex);
 			if (!preg_match($regex, $expression, $matches)) {
 				throw new ParserException('Syntax error in expression ' . $expression);
@@ -79,7 +79,7 @@
 		 * @param QueryFactory $queryFactory
 		 */
 		public static function setDefaultQueryFactory(QueryFactory $queryFactory = null) {
-			self::$defaultQueryFactory = $queryFactory;
+			self::$defaultQueryFactory = $queryFactory ?: new ReflectedQueryFactory();
 		}
 
 		/**
