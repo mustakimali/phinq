@@ -15,7 +15,7 @@
 				new stdClass()
 			);
 
-			$dictionary = Phinq::create(range(1, 3))->toDictionary(new Expression(array('int'), '$keys[$int - 1]', array('$keys' => $keys)));
+			$dictionary = Phinq::create(range(1, 3))->toDictionary(new Expression(array('$int'), '$keys[$int - 1]', array('$keys' => $keys)));
 			self::assertEquals(3, count($dictionary));
 
 			self::assertTrue(isset($dictionary[$keys[0]]));
