@@ -3,6 +3,7 @@
 	namespace Phinq\Tests;
 
 	use Phinq\Phinq;
+	use Phinq\Expression;
 	use stdClass;
 
 	class MiscTests extends \PHPUnit_Framework_TestCase {
@@ -197,10 +198,12 @@
 		}
 
 		public function testWalk() {
-			$this->markTestIncomplete('fix for closures');
 			$temp = array();
 
-			self::assertSame(array('foo', 'bar'), Phinq::create(array('foo', 'bar'))->walk(function($value) use (&$temp) { $temp[] = $value; })->toArray());
+			$phinq = Phinq::create(array('foo', 'bar'))
+				->walk(new Expression(array('value'), '$temp[] = $value', array('&$temp' => &$temp)));
+
+			self::assertSame(array('foo', 'bar'), $phinq->toArray());
 			self::assertSame(array('foo', 'bar'), $temp);
 		}
 
