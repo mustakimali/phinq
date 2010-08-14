@@ -30,13 +30,13 @@
 		 * @return string|Closure
 		 */
 		public function toLambda() {
-			$__phinq_body = $this->getValidBodyStatement();
-			$__phinq_params = implode(', ', $this->parameters);
+			$body = $this->getValidBodyStatement();
+			$parameters = implode(', ', $this->parameters);
 			if (empty($this->closureVariables)) {
-				return create_function($__phinq_params, $__phinq_body);
+				return create_function($parameters, $body);
 			}
 
-			return $this->createClosure($__phinq_params, $__phinq_body);
+			return $this->createClosure($parameters, $body);
 		}
 
 		private function createClosure($__phinq_params, $__phinq_body) {
