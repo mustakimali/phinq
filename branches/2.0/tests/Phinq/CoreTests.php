@@ -3,19 +3,19 @@
 	namespace Phinq\Tests;
 
 	use Phinq\Phinq;
+	use Phinq\Expression;
 	use stdClass;
 
 	class CoreTests extends \PHPUnit_Framework_TestCase {
 
 		public function testToDictionary() {
-			$this->markTestIncomplete('fix for closures');
 			$keys = array(
 				new stdClass(),
 				new stdClass(),
 				new stdClass()
 			);
 
-			$dictionary = Phinq::create(range(1, 3))->toDictionary(function($int) use ($keys) { return $keys[$int - 1]; });
+			$dictionary = Phinq::create(range(1, 3))->toDictionary(new Expression(array('int'), '$keys[$int - 1]', array('$keys' => $keys)));
 			self::assertEquals(3, count($dictionary));
 
 			self::assertTrue(isset($dictionary[$keys[0]]));

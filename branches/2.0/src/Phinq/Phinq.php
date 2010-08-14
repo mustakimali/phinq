@@ -33,22 +33,25 @@
 
 		/**
 		 * @throws ParserException
-		 * @param string $expression
+		 * @param string|Expression $expression
 		 * @return Expression
 		 */
 		protected function parseExpression($expression) {
+			if ($expression instanceof Expression) {
+				return $expression;
+			}
+
 			$varRegex = '\$([a-zA-Z_]\w*)';
-			$regex = sprintf('/^(?:%s|\(%s(?:,\s*%s)+\))\s*=>\s*(.+)$/', $varRegex, $varRegex, $varRegex);
+			$regex = sprintf('/^(?|%s|\(%s(?:,\s*%s)+\))\s*=>\s*(.+)$/', $varRegex, $varRegex, $varRegex);
 			if (!preg_match($regex, $expression, $matches)) {
 				throw new ParserException('Syntax error in expression ' . $expression);
 			}
 
-			$matches = array_filter($matches, function($value) { return !empty($value); });
-
 			array_shift($matches);
 			$body = array_pop($matches);
+			$parameters = array_filter($matches, function($value) { return !empty($value); });
 
-			return new Expression($matches, $body);
+			return new Expression($parameters, $body);
 		}
 
 		protected final function getQueryFactory() {
