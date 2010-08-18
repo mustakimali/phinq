@@ -26,6 +26,10 @@
 			return $this->closureVariables;
 		}
 
+		public function bodyHasMultipleStatements() {
+			return strpos($this->body, '{') === 0;
+		}
+
 		/**
 		 * @return string|Closure
 		 */
@@ -50,7 +54,7 @@
 		}
 
 		protected function getValidBodyStatement() {
-			if (strpos('{', $this->body) === 0) {
+			if ($this->bodyHasMultipleStatements()) {
 				//assumed to be valid PHP code
 				return trim($this->body, '{}');
 			}
