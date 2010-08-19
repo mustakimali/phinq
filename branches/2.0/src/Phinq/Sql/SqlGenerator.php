@@ -1,6 +1,6 @@
 <?php
 
-namespace Phinq\Sql;
+	namespace Phinq\Sql;
 
 	use Exception;
 	use Phinq\Expression;
@@ -27,6 +27,7 @@ namespace Phinq\Sql;
 						case T_OPEN_TAG:
 						case T_CLOSE_TAG:
 							break;
+						case T_ARRAY:
 						case T_WHITESPACE:
 						case T_LNUMBER: //number
 						case T_DNUMBER: //number
@@ -36,7 +37,7 @@ namespace Phinq\Sql;
 							$string = $token[1];
 							if ($string[0] !== '\'') {
 								//single quote the double-quoted string
-								$string = '\'' . addslashes(stripslashes(trim($string, '"'))) . '\'';
+								$string = '\'' . addslashes(stripslashes(substr($string, 1, strlen($string) - 2))) . '\'';
 							}
 
 							$query .= $string;
@@ -82,6 +83,7 @@ namespace Phinq\Sql;
 								case 'ltrim':
 								case 'rtrim':
 									$args = $this->getFunctionArguments($tokens, $i);
+									$direction = $token[1] === 'trim' ? 'both' : ($token[1] === 'ltrim' ? 'left' : 'right');
 									$count = count($args);
 									if ($count !== 1 && $count !== 2) {
 										throw new ParserException('Expected either one or two arguments to function "' . $token[1] . '"');
@@ -92,17 +94,11 @@ namespace Phinq\Sql;
 									if ($count === 2) {
 										$charsToTrim = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
 										if ($charsToTrim[0] === '\'' && strlen($charsToTrim) > 3) {
-											//have to make nested calls to trim
 											throw new Exception('Trimming multiple characters is not supported');
 										}
 									}
-
-									$leadingOrTrailing = $token[1] === 'rtrim' ? 'TRAILING' : ($token[1] === 'ltrim' ? 'LEADING' : 'BOTH');
-									if (!empty($charsToTrim)) {
-										$charsToTrim = ' ' . $charsToTrim;
-									}
-
-									$query .= 'TRIM(' . $leadingOrTrailing . $charsToTrim . ' FROM ' . $stringToTrim . ')';
+									
+									$query .= $this->trim($stringToTrim, $charsToTrim, $direction);
 									break;
 								case 'in_array':
 									throw new Exception('Not implemented yet');
@@ -175,10 +171,10 @@ namespace Phinq\Sql;
 					} else if (is_array($token) && $token[0] === T_WHITESPACE) {
 						continue;
 					} else {
-						throw new ParserException('Unexpected token after function call, expecting whitespace or "("');
+						throw new ParserException('Unexpected token after function call, expected whitespace or "("');
 					}
 				}
-				
+
 				if ($token === ')') {
 					if ($depth === 0) {
 						break;
@@ -197,7 +193,7 @@ namespace Phinq\Sql;
 
 			if (!empty($currentArg)) {
 				$args[] = $currentArg;
-			}				
+			}
 
 			if (!$functionStarted) {
 				throw new ParserException('Expected "(" after function call');
@@ -283,18 +279,15 @@ namespace Phinq\Sql;
 			return 'SUBSTRING';
 		}
 
-		protected function trim(array $tokens, &$i) {
-			return 'TRIM';
-		}
+		protected function trim($stringToTrim, $charsToTrim, $direction) {
+			$leadingOrTrailing = $direction === 'right' ? 'TRAILING' : ($direction === 'left' ? 'LEADING' : 'BOTH');
+			if (!empty($charsToTrim)) {
+				$charsToTrim = ' ' . $charsToTrim;
+			}
 
-		protected function trimLeft(array $tokens, &$i) {
-			return 'LTRIM';
-		}
-
-		protected function trimRight(array $tokens, &$i) {
-			return 'RTRIM';
+			return 'TRIM(' . $leadingOrTrailing . $charsToTrim . ' FROM ' . $stringToTrim . ')';
 		}
 
 	}
 
-	?>
+?>
