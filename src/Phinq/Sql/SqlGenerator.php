@@ -47,10 +47,27 @@
 						case T_STRING:
 							switch (strtolower($token[1])) {
 								case 'strcmp':
-									$query .= $this->compareStrings($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 2) {
+										throw new ParserException('strcmp() must have exactly two arguments');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$otherString = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+									$query .= $this->compareStrings($string, $otherString);
 									break;
 								case 'str_replace':
-									$query .= $this->replaceString($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 3) {
+										throw new ParserException('str_replace() must have exactly three arguments');
+									}
+
+									$search = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$replacement = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+									$subject = $this->tokensToSql($args[2], 0, count($args[2]), $parameter);
+									$query .= $this->replaceString($search, $replacement, $subject);
 									break;
 								case 'str_repeat':
 									$args = $this->getFunctionArguments($tokens, $i);
@@ -60,8 +77,8 @@
 									}
 
 									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$repeat = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
-									$query .= $this->repeatString($string, $repeat);
+									$otherString = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+									$query .= $this->repeatString($string, $otherString);
 									break;
 								case 'strrev':
 									$args = $this->getFunctionArguments($tokens, $i);
@@ -299,12 +316,12 @@
 			return $expression;
 		}
 
-		protected function replaceString(array $tokens, &$i) {
-			return 'REPLACE';
+		protected function replaceString($search, $replace, $string) {
+			return 'REPLACE(' . $search . ', ' . $replace . ', ' . $string . ')';
 		}
 
-		protected function compareStrings(array $tokens, &$i) {
-			return 'STRCMP';
+		protected function compareStrings($string, $otherString) {
+			return 'STRCMP(' . $string . ', ' . $otherString . ')';
 		}
 
 		protected function repeatString($string, $count) {
