@@ -62,10 +62,24 @@
 									$query .= $this->getStringLength($tokens, $i);
 									break;
 								case 'strtolower':
-									$query .= $this->toLowerCase($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('strtoupper() must have exactly one argument');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->toLowerCase($string);
 									break;
 								case 'strtoupper':
-									$query .= $this->toUpperCase($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('strtoupper() must have exactly one argument');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->toUpperCase($string);
 									break;
 								case 'ord':
 									$args = $this->getFunctionArguments($tokens, $i);
@@ -283,8 +297,12 @@
 			return 'LENGTH';
 		}
 
-		protected function toLowerCase(array $tokens, &$i) {
-			return 'LOWER';
+		/**
+		 * @param string $string
+		 * @return string
+		 */
+		protected function toLowerCase($string) {
+			return 'LOWER(' . $string . ')';
 		}
 
 		/**
@@ -295,8 +313,12 @@
 			return 'ORD(' . $char . ')';
 		}
 
-		protected function toUpperCase(array $tokens, &$i) {
-			return 'UPPER';
+		/**
+		 * @param string $string
+		 * @return string
+		 */
+		protected function toUpperCase($string) {
+			return 'UPPER(' . $string . ')';
 		}
 
 		/**
