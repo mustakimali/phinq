@@ -138,7 +138,8 @@
 
 		public function testSubstring() {
 			$generator = new SqlGenerator();
-			self::assertEquals('SUBSTRING(\'foo\', 0, 7)', $generator->generateSql(new Expression(array('$foo'), 'substr(\'foo\', 0, 7)')));
+			self::assertEquals('SUBSTRING(\'foo\' FROM 1 FOR 7)', $generator->generateSql(new Expression(array('$foo'), 'substr(\'foo\', 0, 7)')));
+			self::assertEquals('SUBSTRING(\'foo\' FROM 2)', $generator->generateSql(new Expression(array('$foo'), 'substr(\'foo\', 1)')));
 		}
 
 		public function testTrim() {
