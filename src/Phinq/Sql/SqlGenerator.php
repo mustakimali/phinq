@@ -53,13 +53,35 @@
 									$query .= $this->replaceString($tokens, $i);
 									break;
 								case 'str_repeat':
-									$query .= $this->repeatString($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 2) {
+										throw new ParserException('str_repeat() must have exactly two arguments');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$repeat = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+									$query .= $this->repeatString($string, $repeat);
 									break;
 								case 'strrev':
-									$query .= $this->reverseString($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('strrev() must have exactly one argument');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->reverseString($string);
 									break;
 								case 'strlen':
-									$query .= $this->getStringLength($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('strlen() must have exactly one argument');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->getStringLength($string);
 									break;
 								case 'strtolower':
 									$args = $this->getFunctionArguments($tokens, $i);
@@ -285,16 +307,16 @@
 			return 'STRCMP';
 		}
 
-		protected function repeatString(array $tokens, &$i) {
-			return 'REPEAT';
+		protected function repeatString($string, $count) {
+			return 'REPEAT(' . $string . ', ' . $count . ')';
 		}
 
-		protected function reverseString(array $tokens, &$i) {
-			return 'REVERSE';
+		protected function reverseString($string) {
+			return 'REVERSE(' . $string . ')';
 		}
 
-		protected function getStringLength(array $tokens, &$i) {
-			return 'LENGTH';
+		protected function getStringLength($string) {
+			return 'LENGTH(' . $string . ')';
 		}
 
 		/**
