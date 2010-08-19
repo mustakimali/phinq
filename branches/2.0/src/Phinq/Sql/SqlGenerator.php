@@ -68,7 +68,14 @@
 									$query .= $this->toUpperCase($tokens, $i);
 									break;
 								case 'ord':
-									$query .= $this->getUnicodePoint($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('ord() must have exactly one argument');
+									}
+
+									$char = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->getUnicodePoint($char);
 									break;
 								case 'preg_match':
 									throw new Exception('Not implemented yet');
@@ -280,14 +287,22 @@
 			return 'LOWER';
 		}
 
-		protected function getUnicodePoint(array $tokens, &$i) {
-			return 'ORD';
+		/**
+		 * @param string $char
+		 * @return string
+		 */
+		protected function getUnicodePoint($char) {
+			return 'ORD(' . $char . ')';
 		}
 
 		protected function toUpperCase(array $tokens, &$i) {
 			return 'UPPER';
 		}
 
+		/**
+		 * @param string $string
+		 * @return string
+		 */
 		protected function soundex($string) {
 			return 'SOUNDEX(' . $string . ')';
 		}
