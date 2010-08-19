@@ -27,7 +27,6 @@
 						case T_OPEN_TAG:
 						case T_CLOSE_TAG:
 							break;
-						case T_ARRAY:
 						case T_WHITESPACE:
 						case T_LNUMBER: //number
 						case T_DNUMBER: //number
@@ -77,7 +76,16 @@
 									$query .= $this->soundex($tokens, $i);
 									break;
 								case 'substr':
-									$query .= $this->substring($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count < 2) {
+										throw new ParserException('substr() must have exactly two or three arguments');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$start = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+									$length = isset($args[2]) ? $this->tokensToSql($args[2], 0, count($args[2]), $parameter) : null;
+									$query .= $this->substring($string, $start, $length);
 									break;
 								case 'trim':
 								case 'ltrim':
@@ -275,10 +283,30 @@
 			return 'SOUNDEX';
 		}
 
-		protected function substring(array $tokens, &$i) {
-			return 'SUBSTRING';
+		/**
+		 * @param string $haystack
+		 * @param string $start
+		 * @param int|null $length
+		 * @return string
+		 */
+		protected function substring($haystack, $start, $length) {
+			if ($length !== null) {
+				$length = ' FOR ' . $length;
+			}
+
+			if (is_numeric($start)) {
+				$start += 1; //string indexes start at one instead of zero
+			}
+			
+			return 'SUBSTRING(' . $haystack . ' FROM ' . $start .  $length . ')';
 		}
 
+		/**
+		 * @param string $stringToTrim
+		 * @param string $charsToTrim If empty, will trim spaces
+		 * @param string $direction "left", "right", or "both"
+		 * @return string
+		 */
 		protected function trim($stringToTrim, $charsToTrim, $direction) {
 			$leadingOrTrailing = $direction === 'right' ? 'TRAILING' : ($direction === 'left' ? 'LEADING' : 'BOTH');
 			if (!empty($charsToTrim)) {
