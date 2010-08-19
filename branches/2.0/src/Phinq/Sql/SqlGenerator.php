@@ -73,7 +73,14 @@
 								case 'preg_match':
 									throw new Exception('Not implemented yet');
 								case 'soundex':
-									$query .= $this->soundex($tokens, $i);
+									$args = $this->getFunctionArguments($tokens, $i);
+									$count = count($args);
+									if ($count !== 1) {
+										throw new ParserException('soundex() must have exactly one argument');
+									}
+
+									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$query .= $this->soundex($string);
 									break;
 								case 'substr':
 									$args = $this->getFunctionArguments($tokens, $i);
@@ -116,10 +123,12 @@
 							break;
 						case T_IS_EQUAL: //==
 						case T_IS_IDENTICAL: //===
+							//@todo null checks
 							$query .= '=';
 							break;
 						case T_IS_NOT_EQUAL: //!=
 						case T_IS_NOT_IDENTICAL: //!==
+							//@todo null checks
 							$query .= '!=';
 							break;
 						case T_IS_GREATER_OR_EQUAL: //>=
@@ -279,8 +288,8 @@
 			return 'UPPER';
 		}
 
-		protected function soundex(array $tokens, &$i) {
-			return 'SOUNDEX';
+		protected function soundex($string) {
+			return 'SOUNDEX(' . $string . ')';
 		}
 
 		/**
