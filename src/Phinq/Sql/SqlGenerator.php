@@ -48,101 +48,107 @@
 							$query .= $this->parseVariable($tokens, $i, $token[1], $parameter);
 							break;
 						case T_STRING:
-							$args = array();
-							switch (strtolower($token[1])) {
-								case 'strcmp':
-								case 'str_repeat':
-								case 'preg_match':
-									$tempArgs = $this->getFunctionArguments($tokens, $i);
-									$count = count($tempArgs);
-									if ($count !== 2) {
-										throw new ParserException($token[1] . '() must have exactly two arguments');
-									}
-
-									array_push(
-										$args,
-										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
-										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter)
-									);
-									break;
-								case 'str_replace':
-									$tempArgs = $this->getFunctionArguments($tokens, $i);
-									$count = count($tempArgs);
-									if ($count !== 3) {
-										throw new ParserException('str_replace() must have exactly three arguments');
-									}
-
-									array_push(
-										$args,
-										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
-										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
-										$this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter)
-									);
-									break;
-								case 'soundex':
-								case 'strlen':
-								case 'strrev':
-								case 'strtolower':
-								case 'strtoupper':
-								case 'ord':
-									$tempArgs = $this->getFunctionArguments($tokens, $i);
-									$count = count($tempArgs);
-									if ($count !== 1) {
-										throw new ParserException($token[1] . '() must have exactly one argument');
-									}
-
-									$args[] = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
-									break;
-								case 'substr':
-									$tempArgs = $this->getFunctionArguments($tokens, $i);
-									$count = count($tempArgs);
-									if ($count !== 2 && $count !== 3) {
-										throw new ParserException('substr() must have exactly two or three arguments');
-									}
-
-									array_push(
-										$args,
-										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
-										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
-										isset($tempArgs[2]) ? $this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter) : null
-									);
-									break;
-								case 'trim':
-								case 'ltrim':
-								case 'rtrim':
-									$tempArgs = $this->getFunctionArguments($tokens, $i);
-									$count = count($tempArgs);
-									if ($count !== 1 && $count !== 2) {
-										throw new ParserException($token[1] . '() must have exactly one or two arguments');
-									}
-
-									$stringToTrim = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
-									$charsToTrim = '';
-									if ($count === 2) {
-										$charsToTrim = $this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter);
-										if ($charsToTrim[0] === '\'' && strlen($charsToTrim) > 3) {
-											throw new Exception('Trimming multiple characters is not supported');
-										}
-									}
-
-									array_push($args, $stringToTrim, $charsToTrim);
-									break;
-								case 'in_array':
-									throw new Exception('Not implemented yet');
+							$stringValue = strtolower($token[1]);
+							switch ($stringValue) {
 								case 'false':
 									$query .= self::$false;
-									break 2;
+									break;
 								case 'true':
 									$query .= self::$true;
-									break 2;
+									break;
 								case 'null':
 									$query .= 'NULL';
-									break 2;
+									break;
 								default:
-									throw new ParserException('Unsupported function call to "' . $token[1] . '"');
-							}
+									$args = array();
+									switch ($stringValue) {
+										case 'strcmp':
+										case 'str_repeat':
+										case 'preg_match':
+											$tempArgs = $this->getFunctionArguments($tokens, $i);
+											$count = count($tempArgs);
+											if ($count !== 2) {
+												throw new ParserException($token[1] . '() must have exactly two arguments');
+											}
 
-							$query .= call_user_func_array(array($this, $token[1]), $args);
+											array_push(
+												$args,
+												$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+												$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter)
+											);
+											break;
+										case 'str_replace':
+											$tempArgs = $this->getFunctionArguments($tokens, $i);
+											$count = count($tempArgs);
+											if ($count !== 3) {
+												throw new ParserException('str_replace() must have exactly three arguments');
+											}
+
+											array_push(
+												$args,
+												$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+												$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
+												$this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter)
+											);
+											break;
+										case 'soundex':
+										case 'strlen':
+										case 'strrev':
+										case 'strtolower':
+										case 'strtoupper':
+										case 'ord':
+											$tempArgs = $this->getFunctionArguments($tokens, $i);
+											$count = count($tempArgs);
+											if ($count !== 1) {
+												throw new ParserException($token[1] . '() must have exactly one argument');
+											}
+
+											$args[] = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
+											break;
+										case 'substr':
+											$tempArgs = $this->getFunctionArguments($tokens, $i);
+											$count = count($tempArgs);
+											if ($count !== 2 && $count !== 3) {
+												throw new ParserException('substr() must have exactly two or three arguments');
+											}
+
+											array_push(
+												$args,
+												$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+												$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
+												isset($tempArgs[2]) ? $this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter) : null
+											);
+											break;
+										case 'trim':
+										case 'ltrim':
+										case 'rtrim':
+											$tempArgs = $this->getFunctionArguments($tokens, $i);
+											$count = count($tempArgs);
+											if ($count !== 1 && $count !== 2) {
+												throw new ParserException($token[1] . '() must have exactly one or two arguments');
+											}
+
+											$stringToTrim = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
+											$charsToTrim = '';
+											if ($count === 2) {
+												$charsToTrim = $this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter);
+												if ($charsToTrim[0] === '\'' && strlen($charsToTrim) > 3) {
+													throw new Exception('Trimming multiple characters is not supported');
+												}
+											}
+
+											array_push($args, $stringToTrim, $charsToTrim);
+											break;
+										case 'in_array':
+											throw new Exception('Not implemented yet');
+
+										default:
+											throw new ParserException('Unsupported function call to "' . $token[1] . '"');
+									}
+
+									$query .= call_user_func_array(array($this, $token[1]), $args);
+									break;
+							}
 							break;
 						case T_IS_EQUAL: //==
 						case T_IS_IDENTICAL: //===
