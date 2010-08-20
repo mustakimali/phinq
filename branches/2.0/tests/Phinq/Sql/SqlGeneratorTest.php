@@ -21,6 +21,14 @@
 			self::assertEquals('1 != 1', $generator->generateSql(new Expression(array('$foo'), '1 !== 1')));
 		}
 
+		public function testNullEquality() {
+			$generator = new SqlGenerator();
+			self::assertEquals('1 IS NULL', $generator->generateSql(new Expression(array('$foo'), '1 == null')));
+			self::assertEquals('1 IS NULL', $generator->generateSql(new Expression(array('$foo'), '1 === null')));
+			self::assertEquals('1 IS NOT NULL', $generator->generateSql(new Expression(array('$foo'), '1 != null')));
+			self::assertEquals('1 IS NOT NULL', $generator->generateSql(new Expression(array('$foo'), '1 !== null')));
+		}
+
 		public function testInequality() {
 			$generator = new SqlGenerator();
 			self::assertEquals('1 >= 1', $generator->generateSql(new Expression(array('$foo'), '1 >= 1')));
