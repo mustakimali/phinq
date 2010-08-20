@@ -52,6 +52,7 @@
 							switch (strtolower($token[1])) {
 								case 'strcmp':
 								case 'str_repeat':
+								case 'preg_match':
 									$tempArgs = $this->getFunctionArguments($tokens, $i);
 									$count = count($tempArgs);
 									if ($count !== 2) {
@@ -92,9 +93,6 @@
 
 									$args[] = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
 									break;
-								case 'preg_match':
-									throw new Exception('Not implemented yet');
-
 								case 'substr':
 									$tempArgs = $this->getFunctionArguments($tokens, $i);
 									$count = count($tempArgs);
@@ -409,6 +407,20 @@
 
 		protected function rtrim($stringToTrim, $charsToTrim) {
 			return $this->trim($stringToTrim, $charsToTrim, 'right');
+		}
+
+		protected function preg_match($pattern, $subject) {
+			$pattern = substr($pattern, 1, strlen($pattern) - 2); //strip the quotes
+			$boundary = $pattern[0];
+			$lastBoundary = strrpos($pattern, $boundary);
+			$modifiers = str_split(substr($pattern, $lastBoundary));
+			$query = $subject . ' REGEXP ';
+			if (!in_array('i', $modifiers)) {
+				$query .= 'BINARY ';
+			}
+
+			$pattern = '\'' . substr($pattern, 1, $lastBoundary - 1) . '\'';
+			return $query . $pattern;
 		}
 
 	}
