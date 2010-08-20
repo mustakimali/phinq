@@ -208,6 +208,22 @@
 			$generator->generateSql(new Expression(array('$foo'), 'trim()'));
 		}
 
+		public function testPregMatch() {
+			$generator = new SqlGenerator();
+			self::assertEquals('\'foo\' REGEXP BINARY \'foo\'', $generator->generateSql(new Expression(array('$foo'), 'preg_match("/foo/", "foo")')));
+
+			//backslash tests
+			self::assertEquals("'foo' REGEXP BINARY 'fo\\'o'", $generator->generateSql(new Expression(array('$foo'), 'preg_match("/fo\'o/", "foo")')));
+			self::assertEquals("'foo' REGEXP BINARY 'fo\\\\o'", $generator->generateSql(new Expression(array('$foo'), 'preg_match("/fo\\\\o/", "foo")')));
+			self::assertEquals("'foo' REGEXP BINARY 'foo'", $generator->generateSql(new Expression(array('$foo'), 'preg_match("/fo\\o/", "foo")')));
+			self::assertEquals("'foo' REGEXP BINARY 'fo\\o'", $generator->generateSql(new Expression(array('$foo'), 'preg_match(\'/fo\\o/\', "foo")')));
+		}
+
+		public function testCaseInsensitivePregMatch() {
+			$generator = new SqlGenerator();
+			self::assertEquals('\'foo\' REGEXP \'foo\'', $generator->generateSql(new Expression(array('$foo'), 'preg_match("/foo/i", "foo")')));
+		}
+
 		public function testParseVariable() {
 			$generator = new SqlGenerator();
 			self::assertEquals('bar', $generator->generateSql(new Expression(array('$foo'), '$foo->bar')));
@@ -231,7 +247,7 @@
 			$generator = new SqlGenerator();
 			$generator->generateSql(new Expression(array('$foo'), '$foo foo'));
 		}
-		
+
 	}
 
 ?>
