@@ -8,6 +8,9 @@
 
 	class SqlGenerator {
 
+		private static $true = 1;
+		private static $false = 0;
+
 		public function generateSql(Expression $expression) {
 			if ($expression->bodyHasMultipleStatements()) {
 				throw new ParserException('Invalid expression body: must be one statement');
@@ -128,6 +131,15 @@
 									break;
 								case 'in_array':
 									throw new Exception('Not implemented yet');
+								case 'false':
+									$query .= self::$false;
+									break 2;
+								case 'true':
+									$query .= self::$true;
+									break 2;
+								case 'null':
+									$query .= 'NULL';
+									break 2;
 								default:
 									throw new ParserException('Unsupported function call to "' . $token[1] . '"');
 							}
@@ -180,7 +192,16 @@
 							break;
 						case '!':
 							//handle unary boolean expression
-							throw new Exception('Not supported yet');
+							$this->seekToNonWhitespace($tokens, $i);
+							if (@$tokens[$i] !== '(') {
+								throw new ParserException('Phinq requires the unary boolean operator ("!") to be followed by an expression encased in parentheses (e.g. "!($foo)")');
+							}
+							$temp = $i;
+
+							$this->seekToClosingParenthesis($tokens, $i);
+							$encasedTokens = array_slice($tokens, $temp, $i - $temp + 1);
+							$query .= $this->tokensToSql($encasedTokens, 0, count($encasedTokens), $parameter) . ' = ' . self::$false;
+							break;
 						default:
 							throw new ParserException(sprintf('Unexpected character "%s" in body', $token));
 					}
@@ -190,7 +211,28 @@
 			return $query;
 		}
 
-		private function seekToNonWhitespace(array $tokens, &$i) {
+		protected final function seekToClosingParenthesis(array $tokens, &$i) {
+			$depth = 0;
+			$closingParenFound = false;
+			while (isset($tokens[++$i])) {
+				if ($tokens[$i] === ')') {
+					if ($depth === 0) {
+						$closingParenFound = true;
+						break;
+					} else {
+						$depth--;
+					}
+				} else if ($tokens[$i] === '(') {
+					$depth++;
+				}
+			}
+
+			if ($depth !== 0 || !$closingParenFound) {
+				throw new ParserException('Closing parenthesis never found');
+			}
+		}
+
+		protected final function seekToNonWhitespace(array $tokens, &$i) {
 			while (isset($tokens[++$i]) && @$tokens[$i][0] === T_WHITESPACE);
 		}
 
@@ -342,7 +384,7 @@
 			if (is_numeric($start)) {
 				$start += 1; //string indexes start at one instead of zero
 			}
-			
+
 			return 'SUBSTRING(' . $haystack . ' FROM ' . $start .  $length . ')';
 		}
 
