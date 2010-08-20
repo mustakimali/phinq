@@ -136,13 +136,16 @@
 							break;
 						case T_IS_EQUAL: //==
 						case T_IS_IDENTICAL: //===
-							//@todo null checks
-							$query .= '=';
-							break;
 						case T_IS_NOT_EQUAL: //!=
 						case T_IS_NOT_IDENTICAL: //!==
-							//@todo null checks
-							$query .= '!=';
+							$temp = $i;
+							$this->seekToNonWhitespace($tokens, $i);
+							if (@$tokens[$i][0] === T_STRING && strtolower($tokens[$i][1]) === 'null') {
+								$query .= 'IS ' . ($token[0] === T_IS_NOT_EQUAL || $token[0] === T_IS_NOT_IDENTICAL ? 'NOT ' : '') . 'NULL';
+							} else {
+								$i = $temp;
+								$query .= ($token[0] === T_IS_NOT_EQUAL || $token[0] === T_IS_NOT_IDENTICAL ? '!' : '') . '=';
+							}
 							break;
 						case T_IS_GREATER_OR_EQUAL: //>=
 						case T_IS_SMALLER_OR_EQUAL: //<=
@@ -185,6 +188,10 @@
 			}
 
 			return $query;
+		}
+
+		private function seekToNonWhitespace(array $tokens, &$i) {
+			while (isset($tokens[++$i]) && @$tokens[$i][0] === T_WHITESPACE);
 		}
 
 		private function getFunctionArguments(array $tokens, &$i) {
