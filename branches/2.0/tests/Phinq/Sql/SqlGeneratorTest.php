@@ -29,6 +29,32 @@
 			self::assertEquals('1 IS NOT NULL', $generator->generateSql(new Expression(array('$foo'), '1 !== null')));
 		}
 
+		public function testTrueFalseAndNull() {
+			$generator = new SqlGenerator();
+			self::assertEquals('1', $generator->generateSql(new Expression(array('$foo'), 'true')));
+			self::assertEquals('0', $generator->generateSql(new Expression(array('$foo'), 'false')));
+			self::assertEquals('NULL', $generator->generateSql(new Expression(array('$foo'), 'null')));
+		}
+
+		public function testUnaryNot() {
+			$generator = new SqlGenerator();
+			self::assertEquals('(1) = 0', $generator->generateSql(new Expression(array('$foo'), '!(1)')));
+			self::assertEquals('(1 + 1) = 0', $generator->generateSql(new Expression(array('$foo'), '!(1 + 1)')));
+			self::assertEquals('(1 + (1)) = 0', $generator->generateSql(new Expression(array('$foo'), '!(1 + (1))')));
+		}
+
+		public function testUnaryNotMustBeEnclosedInParentheses() {
+			$this->setExpectedException('Phinq\ParserException', 'Phinq requires the unary boolean operator ("!") to be followed by an expression encased in parentheses (e.g. "!($foo)")');
+			$generator = new SqlGenerator();
+			$generator->generateSql(new Expression(array('$foo'), '!1'));
+		}
+
+		public function testUnaryNotWithoutClosingParenthesis() {
+			$this->setExpectedException('Phinq\ParserException', 'Closing parenthesis never found');
+			$generator = new SqlGenerator();
+			$generator->generateSql(new Expression(array('$foo'), '!(1'));
+		}
+
 		public function testInequality() {
 			$generator = new SqlGenerator();
 			self::assertEquals('1 >= 1', $generator->generateSql(new Expression(array('$foo'), '1 >= 1')));
