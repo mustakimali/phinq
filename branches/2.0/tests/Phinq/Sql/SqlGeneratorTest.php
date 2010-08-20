@@ -169,7 +169,7 @@
 		}
 
 		public function testTrimWithoutArguments() {
-			$this->setExpectedException('Phinq\ParserException', 'Expected either one or two arguments to function "trim"');
+			$this->setExpectedException('Phinq\ParserException', 'trim() must have exactly one or two arguments');
 			$generator = new SqlGenerator();
 			$generator->generateSql(new Expression(array('$foo'), 'trim()'));
 		}

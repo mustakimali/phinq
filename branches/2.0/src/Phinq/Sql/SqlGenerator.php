@@ -45,141 +45,94 @@
 							$query .= $this->parseVariable($tokens, $i, $token[1], $parameter);
 							break;
 						case T_STRING:
+							$args = array();
 							switch (strtolower($token[1])) {
 								case 'strcmp':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
+								case 'str_repeat':
+									$tempArgs = $this->getFunctionArguments($tokens, $i);
+									$count = count($tempArgs);
 									if ($count !== 2) {
-										throw new ParserException('strcmp() must have exactly two arguments');
+										throw new ParserException($token[1] . '() must have exactly two arguments');
 									}
 
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$otherString = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
-									$query .= $this->compareStrings($string, $otherString);
+									array_push(
+										$args,
+										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter)
+									);
 									break;
 								case 'str_replace':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
+									$tempArgs = $this->getFunctionArguments($tokens, $i);
+									$count = count($tempArgs);
 									if ($count !== 3) {
 										throw new ParserException('str_replace() must have exactly three arguments');
 									}
 
-									$search = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$replacement = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
-									$subject = $this->tokensToSql($args[2], 0, count($args[2]), $parameter);
-									$query .= $this->replaceString($search, $replacement, $subject);
+									array_push(
+										$args,
+										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
+										$this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter)
+									);
 									break;
-								case 'str_repeat':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 2) {
-										throw new ParserException('str_repeat() must have exactly two arguments');
-									}
-
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$otherString = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
-									$query .= $this->repeatString($string, $otherString);
-									break;
-								case 'strrev':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 1) {
-										throw new ParserException('strrev() must have exactly one argument');
-									}
-
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->reverseString($string);
-									break;
+								case 'soundex':
 								case 'strlen':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 1) {
-										throw new ParserException('strlen() must have exactly one argument');
-									}
-
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->getStringLength($string);
-									break;
+								case 'strrev':
 								case 'strtolower':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 1) {
-										throw new ParserException('strtoupper() must have exactly one argument');
-									}
-
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->toLowerCase($string);
-									break;
 								case 'strtoupper':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 1) {
-										throw new ParserException('strtoupper() must have exactly one argument');
-									}
-
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->toUpperCase($string);
-									break;
 								case 'ord':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
+									$tempArgs = $this->getFunctionArguments($tokens, $i);
+									$count = count($tempArgs);
 									if ($count !== 1) {
-										throw new ParserException('ord() must have exactly one argument');
+										throw new ParserException($token[1] . '() must have exactly one argument');
 									}
 
-									$char = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->getUnicodePoint($char);
+									$args[] = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
 									break;
 								case 'preg_match':
 									throw new Exception('Not implemented yet');
-								case 'soundex':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count !== 1) {
-										throw new ParserException('soundex() must have exactly one argument');
-									}
 
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$query .= $this->soundex($string);
-									break;
 								case 'substr':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$count = count($args);
-									if ($count < 2) {
+									$tempArgs = $this->getFunctionArguments($tokens, $i);
+									$count = count($tempArgs);
+									if ($count !== 2 && $count !== 3) {
 										throw new ParserException('substr() must have exactly two or three arguments');
 									}
 
-									$string = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
-									$start = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
-									$length = isset($args[2]) ? $this->tokensToSql($args[2], 0, count($args[2]), $parameter) : null;
-									$query .= $this->substring($string, $start, $length);
+									array_push(
+										$args,
+										$this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter),
+										$this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter),
+										isset($tempArgs[2]) ? $this->tokensToSql($tempArgs[2], 0, count($tempArgs[2]), $parameter) : null
+									);
 									break;
 								case 'trim':
 								case 'ltrim':
 								case 'rtrim':
-									$args = $this->getFunctionArguments($tokens, $i);
-									$direction = $token[1] === 'trim' ? 'both' : ($token[1] === 'ltrim' ? 'left' : 'right');
-									$count = count($args);
+									$tempArgs = $this->getFunctionArguments($tokens, $i);
+									$count = count($tempArgs);
 									if ($count !== 1 && $count !== 2) {
-										throw new ParserException('Expected either one or two arguments to function "' . $token[1] . '"');
+										throw new ParserException($token[1] . '() must have exactly one or two arguments');
 									}
 
-									$stringToTrim = $this->tokensToSql($args[0], 0, count($args[0]), $parameter);
+									$stringToTrim = $this->tokensToSql($tempArgs[0], 0, count($tempArgs[0]), $parameter);
 									$charsToTrim = '';
 									if ($count === 2) {
-										$charsToTrim = $this->tokensToSql($args[1], 0, count($args[1]), $parameter);
+										$charsToTrim = $this->tokensToSql($tempArgs[1], 0, count($tempArgs[1]), $parameter);
 										if ($charsToTrim[0] === '\'' && strlen($charsToTrim) > 3) {
 											throw new Exception('Trimming multiple characters is not supported');
 										}
 									}
-									
-									$query .= $this->trim($stringToTrim, $charsToTrim, $direction);
+
+									array_push($args, $stringToTrim, $charsToTrim);
 									break;
 								case 'in_array':
 									throw new Exception('Not implemented yet');
 								default:
 									throw new ParserException('Unsupported function call to "' . $token[1] . '"');
 							}
+
+							$query .= call_user_func_array(array($this, $token[1]), $args);
 							break;
 						case T_IS_EQUAL: //==
 						case T_IS_IDENTICAL: //===
@@ -316,23 +269,23 @@
 			return $expression;
 		}
 
-		protected function replaceString($search, $replace, $string) {
+		protected function str_replace($search, $replace, $string) {
 			return 'REPLACE(' . $search . ', ' . $replace . ', ' . $string . ')';
 		}
 
-		protected function compareStrings($string, $otherString) {
+		protected function strcmp($string, $otherString) {
 			return 'STRCMP(' . $string . ', ' . $otherString . ')';
 		}
 
-		protected function repeatString($string, $count) {
+		protected function str_repeat($string, $count) {
 			return 'REPEAT(' . $string . ', ' . $count . ')';
 		}
 
-		protected function reverseString($string) {
+		protected function strrev($string) {
 			return 'REVERSE(' . $string . ')';
 		}
 
-		protected function getStringLength($string) {
+		protected function strlen($string) {
 			return 'LENGTH(' . $string . ')';
 		}
 
@@ -340,7 +293,7 @@
 		 * @param string $string
 		 * @return string
 		 */
-		protected function toLowerCase($string) {
+		protected function strtolower($string) {
 			return 'LOWER(' . $string . ')';
 		}
 
@@ -348,7 +301,7 @@
 		 * @param string $char
 		 * @return string
 		 */
-		protected function getUnicodePoint($char) {
+		protected function ord($char) {
 			return 'ORD(' . $char . ')';
 		}
 
@@ -356,7 +309,7 @@
 		 * @param string $string
 		 * @return string
 		 */
-		protected function toUpperCase($string) {
+		protected function strtoupper($string) {
 			return 'UPPER(' . $string . ')';
 		}
 
@@ -374,7 +327,7 @@
 		 * @param int|null $length
 		 * @return string
 		 */
-		protected function substring($haystack, $start, $length) {
+		protected function substr($haystack, $start, $length) {
 			if ($length !== null) {
 				$length = ' FOR ' . $length;
 			}
@@ -392,13 +345,21 @@
 		 * @param string $direction "left", "right", or "both"
 		 * @return string
 		 */
-		protected function trim($stringToTrim, $charsToTrim, $direction) {
+		protected function trim($stringToTrim, $charsToTrim, $direction = 'both') {
 			$leadingOrTrailing = $direction === 'right' ? 'TRAILING' : ($direction === 'left' ? 'LEADING' : 'BOTH');
 			if (!empty($charsToTrim)) {
 				$charsToTrim = ' ' . $charsToTrim;
 			}
 
 			return 'TRIM(' . $leadingOrTrailing . $charsToTrim . ' FROM ' . $stringToTrim . ')';
+		}
+
+		protected function ltrim($stringToTrim, $charsToTrim) {
+			return $this->trim($stringToTrim, $charsToTrim, 'left');
+		}
+
+		protected function rtrim($stringToTrim, $charsToTrim) {
+			return $this->trim($stringToTrim, $charsToTrim, 'right');
 		}
 
 	}
